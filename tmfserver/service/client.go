@@ -17,7 +17,6 @@ import (
 	"github.com/hesusruiz/tmforum/config"
 	"github.com/hesusruiz/tmforum/internal/errl"
 	"github.com/hesusruiz/tmforum/tmfserver/repository"
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
 )
 
 // TMFClientConfig holds the configuration for the tmfclient service
@@ -259,7 +258,7 @@ func (c *TMFClient) TMFPatch(ctx context.Context, req *Request, patchMap reposit
 // It takes the object type and the object being processed as input.
 // It returns the processed object, a boolean indicating whether to continue processing, and an error if any.
 // If processObject returns false, it means that the caller wants to stop processing the objects.
-type processObject func(obj repo.TMFObjectMap) (repo.TMFObjectMap, bool, error)
+type processObject func(obj repository.TMFObjectMap) (repository.TMFObjectMap, bool, error)
 
 // TMFGetList retrieves a list of TMF objects from the remote server.
 // It does not perform any validation of the objects, but delegates it to the processObject callback provided by the caller.
@@ -407,7 +406,9 @@ func (c *TMFClient) do(ctx context.Context, method, path string, body []byte, he
 		return nil, nil, errl.Errorf("error sending %s request to %s: %w", method, url, err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {

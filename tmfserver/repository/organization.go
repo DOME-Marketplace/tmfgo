@@ -114,7 +114,6 @@ func (obj TMFObjectMap) SetELSIOrganizationIdentification(identificationId strin
 	// No existing entry was found, add a new one
 	organizationIdentificationArray = append(organizationIdentificationArray, theIdentification)
 	obj["organizationIdentification"] = organizationIdentificationArray
-	return
 
 }
 

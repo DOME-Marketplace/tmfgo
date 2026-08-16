@@ -105,7 +105,10 @@ var LocalConfig = &config.Config{
 func init() {
 
 	// Set the nocolor option for logs
-	os.Setenv("ISBETMF_LOGS_NOCOLOR", "true")
+	err := os.Setenv("ISBETMF_LOGS_NOCOLOR", "true")
+	if err != nil {
+		panic(err)
+	}
 
 	// // Generate a default configuration suitable for the environment
 	// // The approach is that instead of many configurable parameters, we have a set of profiles, with "hardcoded"
@@ -115,7 +118,12 @@ func init() {
 	// 	panic(err)
 	// }
 
-	go runNormalProcess(LocalConfig)
+	go func() {
+		err := runNormalProcess(LocalConfig)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	time.Sleep(1 * time.Second)
 
@@ -149,7 +157,9 @@ func doHTTPRequestStd(t *testing.T, client *http.Client, method, url string, tok
 	if err != nil {
 		t.Fatalf("HTTP request %s %s failed: %v", method, url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -315,7 +325,10 @@ func TestInvalidSeller_StdHTTP(t *testing.T) {
 		"lifecycleStatus": "Active",
 	}
 
-	ps.SetSellerInfo("pepe", "juan", "v4")
+	err := ps.SetSellerInfo("pepe", "juan", "v4")
+	if err != nil {
+		t.Fatalf("failed to set seller info: %v", err)
+	}
 
 	resp, _ := doHTTPRequestStd(t, client, http.MethodPost, serverURL+"/productSpecification", apiToken, ps)
 	if resp.StatusCode != http.StatusForbidden {

@@ -172,7 +172,10 @@ func JsonToStarlark(s string, d starlark.Value) (v starlark.Value, err error) {
 					}
 					i++ // ':'
 					value := parse()
-					dict.SetKey(key, value) // can't fail
+					err := dict.SetKey(key, value)
+					if err != nil {
+						fail("failed to set key: %v", err)
+					}
 					b = next()
 					if b != ',' {
 						if b != '}' {

@@ -207,7 +207,9 @@ func (m *SimpleFileCache) fetchURL(url string, existing *FileEntry) (*FileEntry,
 	if err != nil {
 		return nil, errl.Errorf("error fetching %s: %w", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Handle HTTP 304 Not Modified (Server indicates content hasn't changed)
 	if resp.StatusCode == http.StatusNotModified {

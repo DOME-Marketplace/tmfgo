@@ -155,7 +155,9 @@ func applyMigration(db *sql.DB, migration oneMigration) error {
 		return errl.Error(err)
 	}
 	// Defer a plain rollback, which will cancel the transaction if it is not commited, and be a no-op otherwise
-	defer db.Exec("ROLLBACK")
+	defer func() {
+		_, _ = db.Exec("ROLLBACK")
+	}()
 
 	slog.Debug("Savepoint started", slog.String("name", savepointName))
 

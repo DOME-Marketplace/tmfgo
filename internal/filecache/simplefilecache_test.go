@@ -59,7 +59,9 @@ func TestGetFile(t *testing.T) {
 	// Create a temporary directory
 	tmpDir, err := os.MkdirTemp("", "filecache-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
 
 	// Create a temporary file
 	fileName := filepath.Join(tmpDir, "test.txt")
@@ -110,7 +112,7 @@ func TestGetURL(t *testing.T) {
 				return
 			}
 			w.Header().Set("Etag", "etag-1")
-			w.Write([]byte("server-content"))
+			_, _ = w.Write([]byte("server-content"))
 		case "/error":
 			w.WriteHeader(http.StatusInternalServerError)
 		case "/notfound":
@@ -154,7 +156,9 @@ func TestGetURL(t *testing.T) {
 func TestSimpleFileCacheConcurrentAccess(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "filecache-concurrent-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
 
 	fileName := filepath.Join(tmpDir, "concurrent.txt")
 	err = os.WriteFile(fileName, []byte("initial-data"), 0644)
@@ -194,7 +198,7 @@ func TestSingleFlightCoalescing(t *testing.T) {
 		atomic.AddInt32(&requestCount, 1)
 		time.Sleep(50 * time.Millisecond)
 		w.Header().Set("Etag", "etag-sf")
-		w.Write([]byte("coalesced-content"))
+		_, _ = w.Write([]byte("coalesced-content"))
 	}))
 	defer server.Close()
 
@@ -220,5 +224,3 @@ func TestSingleFlightCoalescing(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, int32(1), atomic.LoadInt32(&requestCount), "expected singleflight to coalesce all 20 calls into 1 HTTP request")
 }
-
-

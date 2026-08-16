@@ -148,7 +148,7 @@ func NewOpenIDConfig(verifierServer string) (*OpenIDConfig, error) {
 		return nil, err
 	}
 	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
+	_ = res.Body.Close()
 	if res.StatusCode > 299 {
 		slog.Error("Response failed", "status", res.StatusCode, "body", body)
 		return nil, err
@@ -184,7 +184,7 @@ func (oid *OpenIDConfig) VerificationKey() (any, error) {
 		return nil, err
 	}
 	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
+	_ = res.Body.Close()
 	if res.StatusCode > 299 {
 		err := errl.Errorf("response failed with status: %d", res.StatusCode)
 		return nil, err

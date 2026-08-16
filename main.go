@@ -82,7 +82,9 @@ func main() {
 	runAsInit := init || ourPid == 1
 
 	if runAsInit {
-		runAsInitProcess(os.Args)
+		// Exclude the name of the program from the list of arguments
+		args := os.Args[1:]
+		runAsInitProcess(args)
 	} else {
 		slog.Info("We are the NORMAL process!", "environment", environment, "debug", debugFlag, "restartHour", restartHour, "restartMinute", restartMinute)
 
@@ -224,7 +226,9 @@ func runNormalProcess(configuration *config.Config) error {
 		slog.Error("failed to listen on port 9991, exiting", slog.Any("error", err))
 		panic(err)
 	}
-	defer ln.Close()
+	defer func() {
+		_ = ln.Close()
+	}()
 
 	// Start the server in a separate goroutine
 	go func() {
@@ -256,7 +260,7 @@ func runNormalProcess(configuration *config.Config) error {
 			case syscall.SIGHUP:
 				// Perform a Tableflip upgrade
 				fmt.Println("CHILD: Received SIGHUP, upgrading...")
-				upg.Upgrade()
+				_ = upg.Upgrade()
 			}
 		}
 	}()
@@ -294,8 +298,6 @@ func runNormalProcess(configuration *config.Config) error {
 //
 //   - args: Command-line arguments to pass to the child process.
 func runAsInitProcess(args []string) {
-	// Exclude the name of the program from the list of arguments
-	args = os.Args[1:]
 
 	ourPid := os.Getpid()
 
@@ -353,7 +355,7 @@ func runAsInitProcess(args []string) {
 					// Wait 10 seconds for the child process to finish
 					time.Sleep(10 * time.Second)
 					// Kill the child immediately
-					cmd.Process.Kill()
+					_ = cmd.Process.Kill()
 				}()
 
 				slog.Info("INIT: using DONE channel to terminate init process")
@@ -381,7 +383,7 @@ func runAsInitProcess(args []string) {
 
 	// Wait for the child process to finish and release its resources
 	slog.Info("INIT: waiting for child process to finish")
-	cmd.Process.Wait()
+	_, _ = cmd.Process.Wait()
 
 	slog.Info("INIT: exiting init process")
 }

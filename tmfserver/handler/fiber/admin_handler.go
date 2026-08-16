@@ -222,7 +222,9 @@ func (h *AdminHandler) Upstream(c *fiber.Ctx) error {
 			slog.Error("Error opening the file", "filename", fileHeader.Filename, "error", err)
 			return c.Status(fiber.StatusBadRequest).SendString("Error opening the file")
 		}
-		defer f.Close()
+		defer func() {
+			_ = f.Close()
+		}()
 
 		// Read file to buffer
 		buffer := make([]byte, fileHeader.Size)

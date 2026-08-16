@@ -48,9 +48,9 @@ func main() {
 			log.Fatalf("Failed to create JWK from raw key: %v", err)
 		}
 		// Set default Key ID and Algorithm if generating new
-		key.Set(jwk.KeyIDKey, "key-12345")
-		key.Set(jwk.KeyTypeKey, jwa.EC)
-		key.Set(jwk.AlgorithmKey, jwa.ES256)
+		_ = key.Set(jwk.KeyIDKey, "key-12345")
+		_ = key.Set(jwk.KeyTypeKey, jwa.EC)
+		_ = key.Set(jwk.AlgorithmKey, jwa.ES256)
 
 		// Print the generated key to screen (stderr) so it can be reused
 		jwkJSON, _ := json.MarshalIndent(key, "", "  ")
@@ -73,7 +73,7 @@ func main() {
 
 		// Handle 'kid' from YAML if present
 		if kid, ok := claims["kid"].(string); ok {
-			key.Set(jwk.KeyIDKey, kid)
+			_ = key.Set(jwk.KeyIDKey, kid)
 			delete(claims, "kid") // Don't put 'kid' in the payload
 		}
 
@@ -87,17 +87,17 @@ func main() {
 		}
 	} else {
 		// Default claims if no YAML provided
-		token.Set(jwt.IssuerKey, "https://issuer.example.com")
-		token.Set(jwt.AudienceKey, "https://verifier.example.com")
-		token.Set(jwt.SubjectKey, "did:key:12345")
-		token.Set("scope", "read write")
+		_ = token.Set(jwt.IssuerKey, "https://issuer.example.com")
+		_ = token.Set(jwt.AudienceKey, "https://verifier.example.com")
+		_ = token.Set(jwt.SubjectKey, "did:key:12345")
+		_ = token.Set("scope", "read write")
 	}
 
 	// Always set IssuedAt and Expiration (1 year) claims
 	now := time.Now()
-	token.Set(jwt.IssuedAtKey, now)
-	token.Set(jwt.NotBeforeKey, now)
-	token.Set(jwt.ExpirationKey, now.AddDate(1, 0, 0))
+	_ = token.Set(jwt.IssuedAtKey, now)
+	_ = token.Set(jwt.NotBeforeKey, now)
+	_ = token.Set(jwt.ExpirationKey, now.AddDate(1, 0, 0))
 
 	// Sign the Token
 	tokenBytes, err := jwt.Sign(token, jwt.WithKey(jwa.ES256, key))

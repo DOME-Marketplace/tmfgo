@@ -96,8 +96,8 @@ func (h *Renderer) Render(w http.ResponseWriter, templateName string, data map[s
 		return fiber.NewError(fiber.StatusInternalServerError, "rendering response")
 	}
 
-	w.Write(out.Bytes())
-	return nil
+	_, err := w.Write(out.Bytes())
+	return err
 
 }
 
@@ -115,8 +115,7 @@ func (h *Renderer) RenderFiber(c *fiber.Ctx, templateName string, data map[strin
 		return fiber.NewError(fiber.StatusInternalServerError, "rendering response")
 	}
 
-	c.Send(out.Bytes())
-	return nil
+	return c.Send(out.Bytes())
 
 }
 

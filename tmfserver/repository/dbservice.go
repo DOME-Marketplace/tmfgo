@@ -368,7 +368,9 @@ func (repo *DBService) ListObjects(healthRequest bool, resourceName string, quer
 	if err != nil {
 		return nil, errl.Errorf("performing query %s with args %v: %w", baseQuery, args, err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	// Loop through rows, using Scan to assign column data to struct fields.
 	for rows.Next() {

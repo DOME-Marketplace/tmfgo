@@ -131,9 +131,7 @@ func processCREATEorUPDATE(action string, path string, op *v2.Operation, resourc
 				if bodySchemaProxy != nil {
 					bodySchema := bodySchemaProxy.Schema()
 
-					for _, value := range bodySchema.Required {
-						requiredProperties = append(requiredProperties, value)
-					}
+					requiredProperties = append(requiredProperties, bodySchema.Required...)
 
 					bodyProperties := bodySchema.Properties
 					if bodyProperties != nil {

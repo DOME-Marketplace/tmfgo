@@ -250,7 +250,7 @@ func ErrorTMF(w http.ResponseWriter, statusCode int, code string, reason string)
 	h.Set("Content-Type", "application/json; charset=utf-8")
 	h.Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(errtmf)
+	_ = json.NewEncoder(w).Encode(errtmf)
 
 }
 
@@ -272,7 +272,7 @@ func ReplyTMF(w http.ResponseWriter, statusCode int, data []byte, additionalHead
 	}
 
 	w.WriteHeader(statusCode)
-	w.Write(data)
+	_, _ = w.Write(data)
 
 }
 

@@ -238,7 +238,7 @@ func determineCurrentNameOnStartup(logDir string) (string, error) {
 // It assumes that the database handle is already locked by the caller.
 func (h *SQLogHandler) rotate() error {
 	// Close the current log database
-	h.db.Close()
+	_ = h.db.Close()
 
 	// Increment the log ID
 	h.currentLogId++
@@ -430,7 +430,7 @@ func (h *SQLogHandler) Handle(c context.Context, r slog.Record) error {
 
 	// Print the colored buffer to standard output as a normal log
 	// fmt.Println(string(bufColor))
-	os.Stdout.Write(bufColor)
+	_, _ = os.Stdout.Write(bufColor)
 
 	// *************************************************************
 	// We now insert a record in the database if enabled
@@ -447,7 +447,9 @@ func (h *SQLogHandler) Handle(c context.Context, r slog.Record) error {
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func() {
+		_ = stmt.Close()
+	}()
 
 	result, err := stmt.Exec(r.Time.Unix(), r.Time.Nanosecond(), r.Level, string(bufPlain))
 	if err != nil {
@@ -462,7 +464,7 @@ func (h *SQLogHandler) Handle(c context.Context, r slog.Record) error {
 	h.lastInsertId = id
 
 	if h.lastInsertId >= maxSizeLiveLog {
-		h.rotate()
+		_ = h.rotate()
 	}
 
 	return nil
@@ -495,13 +497,17 @@ func (h *SQLogHandler) Retrieve(numEntries int) ([]LogRecord, error) {
 	if err != nil {
 		return nil, fmt.Errorf("preparing log query: %w", err)
 	}
-	defer stmt.Close()
+	defer func() {
+		_ = stmt.Close()
+	}()
 
 	rows, err := stmt.Query(numEntries, 0)
 	if err != nil {
 		return nil, fmt.Errorf("querying log records: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var logRecords []LogRecord
 
@@ -559,7 +565,7 @@ func (h *SQLogHandler) Close() {
 	if h.db == nil {
 		return
 	}
-	h.db.Close()
+	_ = h.db.Close()
 }
 
 func (h *SQLogHandler) appendAttr(buf []byte, a slog.Attr, keyColor *color.Color) []byte {
