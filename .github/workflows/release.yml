@@ -34,10 +34,12 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 
-      - name: Sign Docker image
+      - name: Sign Docker image (by digest)
         run: |
           IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
-          cosign sign "$IMAGE"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")
+          echo "Signing digest: $DIGEST"
+          cosign sign --yes "$DIGEST"
 
       - name: Create module source tarball
         run: |
