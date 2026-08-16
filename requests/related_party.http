@@ -1,0 +1,93 @@
+POST https://tmf.sbx.evidenceledger.eu/tmf-api/productCatalogManagement/v4/productOffering HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhdWQiOiJodHRwczovL2NhdGFsb2cuaX
+
+{
+    "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ExternallyBilled.schema.json",
+    "name": "Jesus01",
+    "productSpecification": {
+        "id": "urn:ngsi-ld:product-specification:8e867c80-2a58-49c7-9502-30f8373802ad",
+        "href": "urn:ngsi-ld:product-specification:8e867c80-2a58-49c7-9502-30f8373802ad"
+    }
+}
+
+###
+
+GET https://tmf.sbx.evidenceledger.eu/tmf-api/productCatalogManagement/v4/productOffering?name=Jesus01
+
+###
+
+DELETE https://tmf.sbx.evidenceledger.eu/tmf-api/productCatalogManagement/v4/productOffering/urn:ngsi-ld:product-offering:041d7d9b-fa75-4c1a-a7ed-1f0e11bc3468
+Authorization: Bearer eyJhdWQiOiJodHRwczovL2NhdGFsb2cuaX
+
+###
+POST https://tmf.sbx.evidenceledger.eu/tmf-api/productCatalogManagement/v4/productSpecification HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhdWQiOiJodHRwczovL2NhdGFsb2cuaX
+
+{
+    "lifecycleStatus": "In Study",
+    "name": "Jesus ProductSpecification",
+    "relatedParty": [
+        {
+            "@referredType": "Organization",
+            "href": "urn:ngsi-ld:organization:95fdc12e-6889-4f08-8ff8-296b10e8e781",
+            "id": "urn:ngsi-ld:organization:95fdc12e-6889-4f08-8ff8-296b10e8e781",
+            "name": "did:elsi:VATES-B60645900",
+            "role": "Seller"
+        },
+        {
+            "@referredType": "Organization",
+            "href": "urn:ngsi-ld:organization:95fdc12e-6889-4f08-8ff8-296b10e8e781",
+            "id": "urn:ngsi-ld:organization:95fdc12e-6889-4f08-8ff8-296b10e8e781",
+            "name": "did:elsi:VATES-B60645900",
+            "role": "SellerOperator"
+        }
+    ],
+    "version": "1.0"
+}
+
+
+###
+
+GET https://tmf.dome-marketplace-sbx.org/tmf-api/productCatalogManagement/v4/productSpecification/urn:ngsi-ld:product-specification:8e867c80-2a58-49c7-9502-30f8373802ad HTTP/1.1
+
+###
+
+POST https://tmf.dome-marketplace-sbx.org/tmf-api/party/v4/organization HTTP/1.1
+content-type: application/json
+
+{
+    "@type": "Organization",
+    "name": "DOME Foundation",
+    "organizationIdentification": [
+        {
+            "@type": "organizationIdentification",
+            "identificationId": "did:elsi:VATSB-12345678J",
+            "identificationType": "did:elsi",
+            "issuingAuthority": "eIDAS certificate"
+        }
+    ],
+    "organizationType": "DOME-Operator",
+    "tradingName": "DOME Foundation",
+    "status": "validated",
+    "externalReference": [
+        {
+            "externalReferenceType": "idm_id",
+            "name": "did:elsi:VATSB-12345678J"
+        }
+    ],
+    "contactMedium": null,
+    "isLegalEntity": true
+}
+
+###
+
+GET https://tmf.dome-marketplace-sbx.org/tmf-api/party/v4/organization/urn:ngsi-ld:organization:df924e5d-e8c8-4ea4-aca8-edaf5acdc109 HTTP/1.1
+
+
+###
+DELETE https://tmf.sbx.evidenceledger.eu/tmf-api/productCatalogManagement/v4/productSpecification/urn:ngsi-ld:product-specification:351bbc6e-515f-4159-9082-e60563c927da HTTP/1.1
+Authorization: Bearer eyJhdWQiOiJodHRwczovL2NhdGFsb2cuaX
+
+###

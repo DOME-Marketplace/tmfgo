@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMF Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <nav class="bg-gray-800 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/admin" class="font-bold text-xl">TMF Admin new</a>
+            <div class="space-x-4">
+                <a href="/admin/organization" class="hover:text-gray-300">Organizations</a>
+                <a href="/admin/individual" class="hover:text-gray-300">Individuals</a>
+                <a href="/admin/agreement" class="hover:text-gray-300">Agreements</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">

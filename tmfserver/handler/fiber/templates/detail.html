@@ -1,0 +1,24 @@
+{{template "preamble" .}}
+<div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-bold text-gray-800 capitalize">{{.ResourceName}} Details</h2>
+        <a href="/admin/{{.ResourceName}}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            Back to List
+        </a>
+    </div>
+    
+    <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">
+            ID
+        </label>
+        <p class="text-gray-900">{{.ID}}</p>
+    </div>
+
+    <div class="mb-6">
+        <label class="block text-gray-700 text-sm font-bold mb-2">
+            Raw JSON
+        </label>
+        <pre class="bg-gray-100 p-4 rounded overflow-auto text-sm">{{.JSON}}</pre>
+    </div>
+</div>
+{{template "postamble" .}}
