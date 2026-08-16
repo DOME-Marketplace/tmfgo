@@ -4,7 +4,7 @@
 FROM hesusruiz/sqlite3-rsync-alpine:3.51.2 AS sqlite3_rsync
 
 # Stage 2: Build TMForum API server
-FROM golang:1.25-alpine AS tmfbuilder
+FROM golang:1.26-alpine AS tmfbuilder
 
 # Install build tools for CGO and sqlite tools
 RUN apk update && \
