@@ -1,0 +1,64 @@
+name: Release Image and Go Module
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write   # Required for Sigstore OIDC signing
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          docker build -t "$IMAGE" .
+
+      - name: Push Docker image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          docker push "$IMAGE"
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign Docker image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          cosign sign "$IMAGE"
+
+      - name: Create module source tarball
+        run: |
+          TAR="module-${{ github.ref_name }}.tar.gz"
+          git archive --format=tar.gz -o "$TAR" "${{ github.ref_name }}"
+
+      - name: Sign go.mod
+        run: |
+          cosign sign-blob --yes go.mod \
+            --output go.mod.sig
+
+      - name: Sign module tarball
+        run: |
+          TAR="module-${{ github.ref_name }}.tar.gz"
+          cosign sign-blob --yes "$TAR" \
+            --output "$TAR.sig"
+
+      - name: Upload signatures as workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures
+          path: |
+            go.mod.sig
+            module-${{ github.ref_name }}.tar.gz.sig
