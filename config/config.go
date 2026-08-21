@@ -200,7 +200,10 @@ func LoadConfig(
 		conf.Features.GenerateIDOnCreate = true
 	}
 
-	remoteTMFServer := os.Getenv("ISBETMF_REMOTE_SERVER")
+	remoteTMFServer := os.Getenv("TMF_REMOTE_SERVER")
+	if remoteTMFServer == "" {
+		remoteTMFServer = os.Getenv("ISBETMF_REMOTE_SERVER")
+	}
 	if remoteTMFServer != "" {
 		conf.RemoteTMFServer = remoteTMFServer
 	}

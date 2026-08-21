@@ -236,15 +236,23 @@ The application is designed to be containerized.
 
 1.  **Build the container:**
     ```bash
-    docker build -t isbetmf .
+    docker build -t tmforum .
     ```
 
 2.  **Run the container:**
-    The container requires the `ISBETMF_RUN_ENVIRONMENT` environment variable to select the configuration profile.
+    The container requires the `TMF_ADMIN_TOKEN` environment variable to specify the admin token, wich callers will have to use to perform admin operations.
+
     ```bash
-    docker run -e ISBETMF_RUN_ENVIRONMENT=isbedev -p 9991:9991 isbetmf
+    docker run -e TMF_ADMIN_TOKEN=1234567890 -p 9991:9991 tmforum
     ```
-    Possible values for `ISBETMF_RUN_ENVIRONMENT`: `isbedev`, `isbepre`, `isbepro`, `domedev`, `domepre`, `domepro`.
+
+    The container also acceps other environment variables which configure the behavior of the server. These are:
+
+    * `TMF_RUN_ENVIRONMENT`: The environment to use. Possible values: `isbedev`, `isbepre`, `isbepro`, `domedev`, `domepre`, `domepro`, `local`.
+    * `TMF_DEBUG`: Enable debug mode. Possible values: `true`, `false`.
+    * `TMF_PROXY_ENABLED`: Enable proxy mode. Possible values: `true`, `false`.
+    * `TMF_REMOTE_SERVER`: The URL of the remote TMForum API server when we act as proxy.
+    * `TMF_VERIFIER`: The URL of the verifier server, which is used to verify the access tokens.
 
 3.  **The database and backups:**
     The application uses SQLite as the database. The database is stored in the `/data` directory of the container. To persist the database in the host filesystem, you can use a volume mapped to the `/data` directory of the container.
@@ -252,9 +260,9 @@ The application is designed to be containerized.
     The system maintains backups of the database in the `/data/backups` directory of the container. It maintains a rotating set of 7 backups, one for each day of the week. The backups contain the number of the day of the week in the name (e.g., `backup_01.db`, `backup_02.db`, etc.). The backups are performed every 2 hours at even hours (e.g., 11:00, 13:00, etc.) in the backup file corresponding to the day of the week. Storing the backups in a different system (e.g., in a cloud storage service) is as simple as copying the `/data/backups` directory (or just the latest backup file) to the desired location. To ensure that there are no conflicts with the scheduled updates of the backups, it is recommended to make the copy on even hours (e.g., 10:00, 12:00, etc.).
 
     ```bash
-    docker run -e ISBETMF_RUN_ENVIRONMENT=isbedev -p 9991:9991 -v /path/to/your/database:/data isbetmf
+    docker run -e TMF_ADMIN_TOKEN=1234567890 -p 9991:9991 -v /path/to/your/database:/data tmforum
     ```
-    This will persist the database in the `/data` directory of the container.
+    This will persist the database in the `/path/to/your/database` directory on the host and create backups in the same directory as the database. It will create a subdirectory `backups` to store the backups.
 
 ### Profiles
 
@@ -262,7 +270,7 @@ Configuration is managed via profiles defined in `config/config_data.go`. This a
 
 To add or modify a profile, edit `config/config_data.go`. You can specify the profile to use at runtime with the `-run` flag:
 ```bash
-./bin/isbetmf -run <profile_name>
+./bin/tmforum -run <profile_name>
 ```
 
 ### Policy Engine (PDP)
