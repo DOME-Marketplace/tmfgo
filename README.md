@@ -311,7 +311,7 @@ To run the server locally for development:
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/hesusruiz/tmforum.git
-    cd isbetmf
+    cd tmforum
     ```
 
 2.  **Run with default configuration:**
@@ -322,7 +322,7 @@ To run the server locally for development:
 
 3.  **Build the binary:**
     ```bash
-    go build -o bin/isbetmf main.go
+    go build -o bin/tmforum main.go
     ```
 
 4.  **Run Tests:**
