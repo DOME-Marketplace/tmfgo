@@ -16,7 +16,7 @@ type memoryStore struct {
 	data map[string]map[string]*Subscription // apiFamily -> id -> sub
 }
 
-func NewMemoryStore() Store {
+func NewMemoryStore() Storer {
 	return &memoryStore{data: make(map[string]map[string]*Subscription)}
 }
 

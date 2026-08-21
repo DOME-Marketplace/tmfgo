@@ -39,7 +39,7 @@ func main() {
 	// Parse command-line flags
 	flag.BoolVar(&debugFlag, "d", false, "Enable debug logging")
 	flag.BoolVar(&init, "init", false, "Run as init process")
-	flag.StringVar(&environment, "run", string(config.LOCAL), envHelp)
+	flag.StringVar(&environment, "run", "", envHelp)
 	flag.IntVar(&restartHour, "rh", 3, "Restart program every day at this hour")
 	flag.IntVar(&restartMinute, "rm", 0, "Restart program every day at this minute")
 	flag.Parse()
@@ -62,7 +62,7 @@ func main() {
 	// - If the process is running in a container (pid=1) then do not color the logs
 	// - If the environment variable ISBETMF_LOGS_NOCOLOR is set to "true" then do not color the logs
 	ourPid := os.Getpid()
-	if ourPid == 1 || os.Getenv("ISBETMF_LOGS_NOCOLOR") == "true" {
+	if ourPid == 1 || os.Getenv("ISBETMF_LOGS_NOCOLOR") == "true" || os.Getenv("TMF_LOGS_NOCOLOR") == "true" {
 		logOptions.NoColor = true
 	}
 
@@ -92,7 +92,7 @@ func main() {
 		configuration, err := config.LoadConfig(environment, debugFlag)
 		if err != nil {
 			slog.Error("Failed to load configuration", slog.Any("error", err))
-			panic(err)
+			os.Exit(1)
 		}
 		slog.Info("Configuration loaded", "environment", configuration.Environment, "debug", configuration.Debug, "proxy", configuration.ProxyEnabled)
 

@@ -49,11 +49,11 @@ type CredentialIssuer struct {
 }
 
 type OnePower struct {
-	Id       string   `mapstructure:"id"`
-	Type     string   `mapstructure:"type"`
-	Domain   string   `mapstructure:"domain"`
-	Function string   `mapstructure:"function"`
-	Action   []string `mapstructure:"action"`
+	Id       string   `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id"`
+	Type     string   `json:"type,omitempty" yaml:"type,omitempty" mapstructure:"type"`
+	Domain   string   `json:"domain,omitempty" yaml:"domain,omitempty" mapstructure:"domain"`
+	Function string   `json:"function,omitempty" yaml:"function,omitempty" mapstructure:"function"`
+	Action   []string `json:"action,omitempty" yaml:"action,omitempty" mapstructure:"action"`
 }
 
 func (p *OnePower) SameAs(other *OnePower) bool {
@@ -104,13 +104,13 @@ func (p *OnePower) Includes(other OnePower) bool {
 	}
 
 	// Now we check the Action array.
-	// If p.Action has an asteric '*', this includes any action, so we return true
+	// If p.Action has an asterisc '*', this includes any action, so we return true
 	if slices.Contains(p.Action, "*") {
 		return true
 	}
 
 	// Check that each element of other.action is included in p.action
-	// The comparison of individual elements must be case-insensitive using strings.EqualFold
+	// The comparison of individual elements is case-insensitive
 	for _, otherAction := range other.Action {
 		found := false
 		for _, pAction := range p.Action {

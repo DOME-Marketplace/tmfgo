@@ -250,6 +250,11 @@ func (svc *Service) evalReadListPolicy(req *Request, obj repo.TMFObjectMap) (str
 		return "access to launched public resource", nil
 	}
 
+	// From now on, the object is either:
+	// - a public aobject not yet launched and without buyer information
+	// - a public object with buyer information (i.e. buyer has a buyer role)
+	// - a private object (like an agreement) that should be accessible only by the parties involved
+
 	// Private objects require authentication
 	if !caller.IsAuthenticated {
 		return "", errl.Errorf("user not authenticated")
@@ -415,6 +420,7 @@ func (svc *Service) evalDeletePolicy(req *Request, obj repo.TMFObjectMap) (strin
 // -----------------------------------------------------------------------------
 
 // Step 1: Ensure Seller/SellerOperator and Buyer/BuyerOperator pairs are not partially set.
+// Also, reject when only buyer info is set, as we need always the seller.
 func validateAttributeIntegrity(obj repo.TMFObjectMap) error {
 	objSeller, objSellerOperator, _ := obj.GetSellerInfo("")
 	objBuyer, objBuyerOperator, _ := obj.GetBuyerInfo("")
@@ -423,6 +429,9 @@ func validateAttributeIntegrity(obj repo.TMFObjectMap) error {
 		return errl.Errorf("objSeller and objSellerOperator must both be set or both be empty, got objSeller='%s', objSellerOperator='%s'", objSeller, objSellerOperator)
 	}
 	if isPartiallySet(objBuyer, objBuyerOperator) {
+		return errl.Errorf("objBuyer and objBuyerOperator must both be set or both be empty, got objBuyer='%s', objBuyerOperator='%s'", objBuyer, objBuyerOperator)
+	}
+	if objBuyer != "" && objSeller == "" {
 		return errl.Errorf("objBuyer and objBuyerOperator must both be set or both be empty, got objBuyer='%s', objBuyerOperator='%s'", objBuyer, objBuyerOperator)
 	}
 	return nil

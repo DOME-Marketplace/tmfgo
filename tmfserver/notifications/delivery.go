@@ -12,7 +12,7 @@ type httpDelivery struct {
 	client *http.Client
 }
 
-func NewHTTPDelivery(timeout time.Duration) DeliveryClient {
+func NewHTTPDelivery(timeout time.Duration) Deliverer {
 	return &httpDelivery{client: &http.Client{Timeout: timeout}}
 }
 

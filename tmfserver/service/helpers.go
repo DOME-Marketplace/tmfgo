@@ -305,7 +305,13 @@ func (svc *Service) verifyObjectOnUpdate(req *Request, incomingObjMap repo.TMFOb
 	// However, we should reject the update if the user specifies an invalid field that could cause problems
 	// for the local or remote servers or clients.
 
-	// Check the non-patchable fields are not specified in the object: id, href, lastUpdate, @type, @baseType
+	// Specifying an id in the body that does not match the one in the request is a hard error.
+	bodyID := incomingObjMap.ID()
+	if bodyID != "" && bodyID != req.ID {
+		return ErrorResponsef(http.StatusBadRequest, "id in body does not match id in request")
+	}
+
+	// Delete the non-patchable fields that may have been specified in the object: id, href, lastUpdate, @type, @baseType
 	for _, field := range []string{"id", "href", "lastUpdate", "@type", "@baseType"} {
 		if _, ok := incomingObjMap[field]; ok {
 			slog.Warn("non-patchable field", "field", field)

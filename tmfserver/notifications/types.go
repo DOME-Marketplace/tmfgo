@@ -17,26 +17,26 @@ type Subscription struct {
 	CreatedAt  time.Time         `json:"createdAt"`
 }
 
-// Store abstracts persistence for subscriptions.
-type Store interface {
+// Storer abstracts persistence for subscriptions.
+type Storer interface {
 	AddSubscription(sub *Subscription) error
 	DeleteSubscription(apiFamily, id string) error
 	GetSubscription(apiFamily, id string) (*Subscription, error)
 	ListSubscriptionsByAPIFamily(apiFamily string) ([]*Subscription, error)
 }
 
-// DeliveryClient abstracts delivering events to subscriber callbacks.
-type DeliveryClient interface {
+// Deliverer abstracts delivering events to subscriber callbacks.
+type Deliverer interface {
 	Deliver(sub *Subscription, payload any) error
 }
 
 // Manager coordinates subscriptions and event publishing.
 type Manager struct {
-	store   Store
-	deliver DeliveryClient
+	store   Storer
+	deliver Deliverer
 }
 
-func NewManager(store Store, deliver DeliveryClient) *Manager {
+func NewManager(store Storer, deliver Deliverer) *Manager {
 	return &Manager{store: store, deliver: deliver}
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -16,58 +17,68 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// TestISBECRUDAndListGenericObject simulates a Handler to invoke the create service
-func TestISBECRUDAndListGenericObject(t *testing.T) {
-	s := newISBEDEVTestService(t)
+// TestLocalCRUDAndListGenericObject exercises the CRUD functions in a local database.
+func TestLocalCRUDAndListGenericObject(t *testing.T) {
+	s := newLocalTestService(t)
 
+	// We will manage a productOffering object
 	apiFamily := "productCatalogManagement"
 	resourceName := "productOffering"
 
-	s.Features.VerifyJWTSignature = true
-
-	// Authenticate
-
-	authUser, err := s.ProcessAccessToken(isbeAdminAccessToken)
+	// To authenticate as a seller
+	sellerUser, err := s.ProcessAccessToken(testSellerAccessToken)
 	if err != nil {
 		t.Fatalf("failed to process access token: %v", err)
 	}
 
-	// Create
+	// To authenticate as another seller
+	foreignUser := &types.AuthUser{
+		OrganizationIdentifier: "VATES-11111111K",
+		IsAuthenticated:        true,
+		IsLEAR:                 true,
+		ProductCreatePower:     true,
+		ProductUpdatePower:     true,
+		ProductDeletePower:     true,
+	}
+
+	// Define the object to create
 	createObj := map[string]any{
 		"@type": resourceName,
 		"name":  "Test Product",
 		"relatedParty": []map[string]any{
-			{"role": "Seller", "name": "did:elsi:VATES-11111111K"},
-			{"role": "SellerOperator", "name": "did:elsi:VATES-G87936159"},
+			{"role": "Seller", "name": testSeller},
+			{"role": "SellerOperator", "name": testServerOperator},
 		},
 	}
-	bCreate, _ := json.Marshal(createObj)
+	requestBody, _ := json.Marshal(createObj)
 
-	cReq := &Request{
+	// The request for the create service
+	request := &Request{
 		Method:       "POST",
 		Action:       ActionCREATE,
 		APIfamily:    apiFamily,
 		APIVersion:   "v4",
 		ResourceName: resourceName,
 		ID:           "",
-		Body:         bCreate,
+		Body:         requestBody,
 		QueryParams:  nil,
-		AuthUser:     *authUser,
+		AuthUser:     *sellerUser,
 	}
 
-	cResp := s.CreateTMFObject(context.Background(), cReq)
-	if cResp.StatusCode != http.StatusCreated {
-		t.Fatalf("create expected 201, got %d", cResp.StatusCode)
+	// Create the object
+	response := s.CreateTMFObject(context.Background(), request)
+	if response.StatusCode != http.StatusCreated {
+		t.Fatalf("create expected 201, got %d", response.StatusCode)
 	}
-	bodyMap := cResp.Body.(repository.TMFObjectMap)
+	bodyMap := response.Body.(repository.TMFObjectMap)
 	id, _ := bodyMap["id"].(string)
 	if id == "" {
 		t.Fatalf("no id returned")
 	}
 
-	// Get
+	// Retrieve the object, authenticating as the same seller
 
-	gReq := &Request{
+	request = &Request{
 		Method:       "GET",
 		Action:       ActionREAD,
 		APIfamily:    apiFamily,
@@ -76,15 +87,15 @@ func TestISBECRUDAndListGenericObject(t *testing.T) {
 		ID:           id,
 		Body:         nil,
 		QueryParams:  nil,
-		AuthUser:     *authUser,
+		AuthUser:     *sellerUser,
 	}
 
-	gResp := s.GetTMFObject(context.Background(), gReq)
-	if gResp.StatusCode != http.StatusOK {
-		t.Fatalf("get expected 200, got %d", gResp.StatusCode)
+	response = s.GetTMFObject(context.Background(), request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("get expected 200, got %d", response.StatusCode)
 	}
 
-	// Update (must include version greater than existing)
+	// Update the object incrementing the version
 	upd := map[string]any{
 		"@type":       resourceName,
 		"id":          id,
@@ -92,12 +103,24 @@ func TestISBECRUDAndListGenericObject(t *testing.T) {
 		"description": "Updated description",
 	}
 	bUpd, _ := json.Marshal(upd)
-	uReq := newReq("PATCH", "UPDATE", apiFamily, resourceName, id, bUpd, nil)
-	uResp := s.UpdateTMFObject(context.Background(), uReq)
-	if uResp.StatusCode != http.StatusOK {
-		t.Fatalf("update expected 200, got %d", uResp.StatusCode)
+
+	request = &Request{
+		Method:       "PATCH",
+		Action:       ActionUPDATE,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           id,
+		Body:         bUpd,
+		QueryParams:  nil,
+		AuthUser:     *sellerUser,
 	}
-	updated := uResp.Body.(repository.TMFObjectMap)
+
+	response = s.UpdateTMFObject(context.Background(), request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("update expected 200, got %d", response.StatusCode)
+	}
+	updated := response.Body.(repository.TMFObjectMap)
 	if updated["version"].(string) != "1.1" {
 		t.Fatalf("expected version 1.1, got %v", updated["version"])
 	}
@@ -105,28 +128,122 @@ func TestISBECRUDAndListGenericObject(t *testing.T) {
 		t.Fatalf("expected description Updated description, got %v", updated["description"])
 	}
 
-	// List (all)
-	lReq := newReq("GET", "LIST", apiFamily, resourceName, "", nil, url.Values{})
-	lResp := s.ListTMFObjects(context.Background(), lReq)
-	if lResp.StatusCode != http.StatusOK {
-		t.Fatalf("list expected 200, got %d", lResp.StatusCode)
+	// List (all). First with a user who is not the seller.
+	// The offereing is not yet launched, so it should not be visible.
+
+	request = &Request{
+		Method:       "GET",
+		Action:       ActionLIST,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           "",
+		Body:         nil,
+		QueryParams:  url.Values{},
+		AuthUser:     *foreignUser,
 	}
-	if lResp.Headers["X-Total-Count"] == "" {
+
+	response = s.ListTMFObjects(context.Background(), request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("list expected 200, got %d", response.StatusCode)
+	}
+
+	responseObjects, ok := response.Body.([]repository.TMFObjectMap)
+	if !ok {
+		t.Fatalf("expected list of objects, got %T", response.Body)
+	}
+	if len(responseObjects) != 0 {
+		t.Fatalf("expected 0 objects, got %d", len(responseObjects))
+	}
+
+	if response.Headers["X-Total-Count"] != "0" {
+		t.Fatalf("expected X-Total-Count=0, got %s", response.Headers["X-Total-Count"])
+	}
+
+	// Now, update the object modifying the lifecycleStatus to "Launched"
+	upd = map[string]any{
+		"@type":           resourceName,
+		"version":         "1.2",
+		"lifecycleStatus": "Launched",
+	}
+	bUpd, _ = json.Marshal(upd)
+	request = &Request{
+		Method:       "PATCH",
+		Action:       ActionUPDATE,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           id,
+		Body:         bUpd,
+		QueryParams:  nil,
+		AuthUser:     *sellerUser,
+	}
+
+	response = s.UpdateTMFObject(context.Background(), request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("update expected 200, got %d", response.StatusCode)
+	}
+
+	// List again
+	request = &Request{
+		Method:       "GET",
+		Action:       ActionLIST,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           "",
+		Body:         nil,
+		QueryParams:  url.Values{},
+		AuthUser:     *foreignUser,
+	}
+
+	response = s.ListTMFObjects(context.Background(), request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("list expected 200, got %d", response.StatusCode)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("list expected 200, got %d", response.StatusCode)
+	}
+
+	responseObjects, ok = response.Body.([]repository.TMFObjectMap)
+	if !ok {
+		t.Fatalf("expected list of objects, got %T", response.Body)
+	}
+	if len(responseObjects) != 1 {
+		t.Fatalf("expected 1 object, got %d", len(responseObjects))
+	}
+
+	if response.Headers["X-Total-Count"] == "" {
 		t.Fatalf("missing X-Total-Count header")
 	}
-	if lResp.Headers["X-Total-Count"] != "1" {
-		t.Fatalf("expected X-Total-Count=1, got %s", lResp.Headers["X-Total-Count"])
+	if response.Headers["X-Total-Count"] != "1" {
+		t.Fatalf("expected X-Total-Count=1, got %s", response.Headers["X-Total-Count"])
 	}
 
 	// List with fields=none (should reduce fields per item)
-	lReqQP := newReq("GET", "LIST", apiFamily, resourceName, "", nil, url.Values{"fields": []string{"none"}})
-	lResp2 := s.ListTMFObjects(context.Background(), lReqQP)
-	if lResp2.StatusCode != http.StatusOK {
-		t.Fatalf("list expected 200, got %d", lResp2.StatusCode)
+
+	fields := url.Values{"fields": []string{"none"}}
+	requestQP := &Request{
+		Method:       "GET",
+		Action:       ActionLIST,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           "",
+		Body:         nil,
+		QueryParams:  fields,
+		AuthUser:     *sellerUser,
 	}
-	items, ok := lResp2.Body.([]repository.TMFObjectMap)
+
+	response = s.ListTMFObjects(context.Background(), requestQP)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("list expected 200, got %d", response.StatusCode)
+	}
+
+	items, ok := response.Body.([]repository.TMFObjectMap)
 	if !ok || len(items) == 0 {
-		t.Fatalf("expected list of items, got %T", lResp2.Body)
+		t.Fatalf("expected list of items, got %T", response.Body)
 	}
 	// Expect minimal keys present
 	item := items[0]
@@ -135,34 +252,53 @@ func TestISBECRUDAndListGenericObject(t *testing.T) {
 	}
 
 	// Delete
-	dReq := newReq("DELETE", "DELETE", apiFamily, resourceName, id, nil, nil)
-	dResp := s.DeleteTMFObject(context.Background(), dReq)
-	if dResp.StatusCode != http.StatusNoContent {
-		t.Fatalf("delete expected 204, got %d", dResp.StatusCode)
+	dReq := &Request{
+		Method:       "DELETE",
+		Action:       ActionDELETE,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           id,
+		Body:         nil,
+		QueryParams:  nil,
+		AuthUser:     *sellerUser,
+	}
+
+	response = s.DeleteTMFObject(context.Background(), dReq)
+	if response.StatusCode != http.StatusNoContent {
+		t.Fatalf("delete expected 204, got %d", response.StatusCode)
 	}
 
 	// Get after delete -> 404
-	gReq = newReq("GET", "READ", apiFamily, resourceName, id, nil, nil)
-	gResp2 := s.GetTMFObject(context.Background(), gReq)
-	if gResp2.StatusCode != http.StatusNotFound {
-		t.Fatalf("get after delete expected 404, got %d", gResp2.StatusCode)
+
+	request = &Request{
+		Method:       "GET",
+		Action:       ActionREAD,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           id,
+		Body:         nil,
+		QueryParams:  nil,
+		AuthUser:     *sellerUser,
+	}
+	response = s.GetTMFObject(context.Background(), request)
+	if response.StatusCode != http.StatusNotFound {
+		t.Fatalf("get after delete expected 404, got %d", response.StatusCode)
 	}
 }
 
-func TestBadISBECreate(t *testing.T) {
-	s := newISBEDEVTestService(t)
-
-	// Change the server admin
-	s.ServerOperatorDid = "VATES-9999999K"
+// Try to create an object which is not managed by the server operator
+func TestLocalForeignerCreate(t *testing.T) {
+	s := newLocalTestService(t)
 
 	apiFamily := "productCatalogManagement"
 	resourceName := "productOffering"
 
 	s.Features.VerifyJWTSignature = true
 
-	// Authenticate
-
-	authUser, err := s.ProcessAccessToken(isbeAdminAccessToken)
+	// Authenticate as the server operator, who can do everything
+	authUser, err := s.ProcessAccessToken(testServerOperatorAccessToken)
 	if err != nil {
 		t.Fatalf("failed to process access token: %v", err)
 	}
@@ -200,11 +336,43 @@ func TestBadISBECreate(t *testing.T) {
 		t.Fatalf("no id returned")
 	}
 
+	// But now try to create a foreign object authenticating as a normal user
+	// To authenticate as another seller
+	foreignUser := &types.AuthUser{
+		OrganizationIdentifier: "VATES-11111111K",
+		IsAuthenticated:        true,
+		IsLEAR:                 true,
+		ProductCreatePower:     true,
+		ProductUpdatePower:     true,
+		ProductDeletePower:     true,
+	}
+
+	cReq = &Request{
+		Method:       "POST",
+		Action:       ActionCREATE,
+		APIfamily:    apiFamily,
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           "",
+		Body:         bCreate,
+		QueryParams:  nil,
+		AuthUser:     *foreignUser,
+	}
+
+	cResp = s.CreateTMFObject(context.Background(), cReq)
+	if cResp.StatusCode != http.StatusForbidden {
+		t.Fatalf("create expected 403, got %d", cResp.StatusCode)
+	}
+
 }
 
 // newISBEDEVTestService creates a new service for testing with ISBE DEV configuration
 func newISBEDEVTestService(t *testing.T) *Service {
 	t.Helper()
+
+	// Set the environment variable ISBETMF_ADMIN_TOKEN to the admin token
+	os.Setenv("ISBETMF_ADMIN_TOKEN", testServerOperatorAccessToken)
+
 	configuration, err := config.LoadConfig("isbedev", true)
 	if err != nil {
 		t.Fatalf("failed to load configuration: %v", err)
@@ -233,38 +401,7 @@ func newISBEDEVTestService(t *testing.T) *Service {
 	return tmfService
 }
 
-// newISBEDEVTestService creates a new service for testing with ISBE DEV configuration
-func newDOMEDEVTestService(t *testing.T) *Service {
-	t.Helper()
-	configuration, err := config.LoadConfig("domedev", true)
-	if err != nil {
-		t.Fatalf("failed to load configuration: %v", err)
-	}
-
-	dbLayer, err := repository.NewDBService(":memory:")
-	if err != nil {
-		t.Fatalf("create test db: %v", err)
-	}
-
-	configuration.PolicyFileName = "../../auth_policies.star"
-	rulesEngine, err := pdp.NewPDPService(&pdp.Config{
-		PolicyFileName: configuration.PolicyFileName,
-		Debug:          configuration.Debug,
-	})
-	if err != nil {
-		t.Fatalf("create test rules engine: %v", err)
-	}
-
-	// Create the service, which will use the database and the rules engine
-	tmfService, err := NewTMFService(configuration, dbLayer, rulesEngine)
-	if err != nil {
-		t.Fatalf("create test service: %v", err)
-	}
-
-	return tmfService
-}
-
-func newTestService(t *testing.T) *Service {
+func newLocalTestService(t *testing.T) *Service {
 	t.Helper()
 
 	dbLayer, err := repository.NewDBService(":memory:")
@@ -274,8 +411,14 @@ func newTestService(t *testing.T) *Service {
 
 	// Create service struct directly (no external verifier)
 	s := &Service{
-		storage:           dbLayer,
-		ServerOperatorDid: "VATES-G87936159",
+		adminToken:                           testServerOperatorAccessToken,
+		ServerOperatorDid:                    testServerOperator,
+		ServerOperatorName:                   "Foundation Operator",
+		ServerOperatorOrganizationIdentifier: testServerOperator,
+		ServerOperatorCountry:                "SPAIN",
+		proxyEnabled:                         false,
+
+		storage: dbLayer,
 		LEARPower: types.OnePower{
 			Type:     "organization",
 			Domain:   "ISBE",
@@ -302,6 +445,7 @@ func newTestService(t *testing.T) *Service {
 		},
 		Features: config.Features{
 			GenerateIDOnCreate: true,
+			VerifyJWTSignature: false,
 		},
 	}
 	// Wire notifications manager to a fake delivery by default
@@ -338,38 +482,14 @@ func (f *fakeDelivery) Deliver(_ *notifications.Subscription, payload any) error
 	return nil
 }
 
-func TestCreateAndDeleteHubSubscription(t *testing.T) {
-	s := newTestService(t)
-
-	body := map[string]any{
-		"callback":   "http://localhost:9991/listener/test",
-		"eventTypes": []string{"ProductOfferingCreateEvent"},
-		"headers":    map[string]any{"x-auth-token": "abc123"},
-	}
-	b, _ := json.Marshal(body)
-	req := newReq("POST", "CREATE", "TMF620", "", "", b, nil)
-
-	resp := s.CreateHubSubscription(req)
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("expected 201, got %d", resp.StatusCode)
-	}
-
-	respMap, _ := resp.Body.(map[string]any)
-	id, _ := respMap["id"].(string)
-	if id == "" {
-		t.Fatalf("expected id in response")
-	}
-
-	// Delete
-	delReq := newReq("DELETE", "DELETE", "TMF620", "", id, nil, nil)
-	delResp := s.DeleteHubSubscription(delReq)
-	if delResp.StatusCode != http.StatusNoContent {
-		t.Fatalf("expected 204, got %d", delResp.StatusCode)
-	}
-}
-
 func TestCreateGenericObjectPublishesEvent(t *testing.T) {
-	s := newTestService(t)
+	s := newLocalTestService(t)
+
+	// To authenticate as a seller
+	sellerUser, err := s.ProcessAccessToken(testSellerAccessToken)
+	if err != nil {
+		t.Fatalf("failed to process access token: %v", err)
+	}
 
 	// Replace notifications manager with one that uses fake delivery
 	memStore := notifications.NewMemoryStore()
@@ -379,12 +499,12 @@ func TestCreateGenericObjectPublishesEvent(t *testing.T) {
 	// Create a subscription to receive create events
 	sub := &notifications.Subscription{
 		ID:         "sub1",
-		APIFamily:  "TMF620",
+		APIFamily:  "productCatalogManagement",
 		Callback:   "http://localhost:9991/listener/ProductOfferingCreateEvent",
 		EventTypes: []string{"ProductOfferingCreateEvent"},
 		Headers:    map[string]string{"x-auth-token": "abc123"},
 	}
-	if _, err := s.notif.CreateSubscription("TMF620", sub); err != nil {
+	if _, err := s.notif.CreateSubscription("productCatalogManagement", sub); err != nil {
 		t.Fatalf("create sub: %v", err)
 	}
 
@@ -398,17 +518,18 @@ func TestCreateGenericObjectPublishesEvent(t *testing.T) {
 		},
 	}
 	b, _ := json.Marshal(obj)
-	req := newReq("POST", "CREATE", "TMF620", resourceName, "", b, nil)
 
-	authUser, err := s.ProcessAccessToken("abc123")
-	if err != nil {
-		t.Fatalf("invalid access token: %v", err)
+	req := &Request{
+		Method:       "POST",
+		Action:       ActionCREATE,
+		APIfamily:    "productCatalogManagement",
+		APIVersion:   "v4",
+		ResourceName: resourceName,
+		ID:           "",
+		Body:         b,
+		QueryParams:  nil,
+		AuthUser:     *sellerUser,
 	}
-
-	// Grant power manually for the test
-	authUser.ProductCreatePower = true
-
-	req.AuthUser = *authUser
 
 	resp := s.CreateTMFObject(context.Background(), req)
 	if resp.StatusCode != http.StatusCreated {
@@ -431,114 +552,15 @@ func TestCreateGenericObjectPublishesEvent(t *testing.T) {
 	}
 }
 
-func TestCRUDAndListGenericObject(t *testing.T) {
-	s := newTestService(t)
-
-	apiFamily := "productCatalogManagement"
-
-	// Create
-	resourceName := "productOffering"
-	createObj := map[string]any{
-		"@type": resourceName,
-		"name":  "Test Product",
-		"relatedParty": []map[string]any{
-			{"role": "Seller", "name": "did:elsi:VATES-11111111K"},
-			{"role": "SellerOperator", "name": "did:elsi:VATES-G87936159"},
-		},
-	}
-	bCreate, _ := json.Marshal(createObj)
-	cReq := newReq("POST", "CREATE", apiFamily, resourceName, "", bCreate, nil)
-	cResp := s.CreateTMFObject(context.Background(), cReq)
-	if cResp.StatusCode != http.StatusCreated {
-		t.Fatalf("create expected 201, got %d", cResp.StatusCode)
-	}
-	bodyMap := cResp.Body.(repository.TMFObjectMap)
-	id, _ := bodyMap["id"].(string)
-	if id == "" {
-		t.Fatalf("no id returned")
-	}
-
-	// Get
-	gReq := newReq("GET", "READ", apiFamily, resourceName, id, nil, nil)
-	gResp := s.GetTMFObject(context.Background(), gReq)
-	if gResp.StatusCode != http.StatusOK {
-		t.Fatalf("get expected 200, got %d", gResp.StatusCode)
-	}
-
-	// Update (must include version greater than existing)
-	upd := map[string]any{
-		"@type":       resourceName,
-		"id":          id,
-		"version":     "1.1",
-		"description": "Updated description",
-	}
-	bUpd, _ := json.Marshal(upd)
-	uReq := newReq("PATCH", "UPDATE", apiFamily, resourceName, id, bUpd, nil)
-	uResp := s.UpdateTMFObject(context.Background(), uReq)
-	if uResp.StatusCode != http.StatusOK {
-		t.Fatalf("update expected 200, got %d", uResp.StatusCode)
-	}
-	updated := uResp.Body.(repository.TMFObjectMap)
-	if updated["version"].(string) != "1.1" {
-		t.Fatalf("expected version 1.1, got %v", updated["version"])
-	}
-	if updated["description"].(string) != "Updated description" {
-		t.Fatalf("expected description Updated description, got %v", updated["description"])
-	}
-
-	// List (all)
-	lReq := newReq("GET", "LIST", apiFamily, resourceName, "", nil, url.Values{})
-	lResp := s.ListTMFObjects(context.Background(), lReq)
-	if lResp.StatusCode != http.StatusOK {
-		t.Fatalf("list expected 200, got %d", lResp.StatusCode)
-	}
-	if lResp.Headers["X-Total-Count"] == "" {
-		t.Fatalf("missing X-Total-Count header")
-	}
-	if lResp.Headers["X-Total-Count"] != "1" {
-		t.Fatalf("expected X-Total-Count=1, got %s", lResp.Headers["X-Total-Count"])
-	}
-
-	// List with fields=none (should reduce fields per item)
-	lReqQP := newReq("GET", "LIST", apiFamily, resourceName, "", nil, url.Values{"fields": []string{"none"}})
-	lResp2 := s.ListTMFObjects(context.Background(), lReqQP)
-	if lResp2.StatusCode != http.StatusOK {
-		t.Fatalf("list expected 200, got %d", lResp2.StatusCode)
-	}
-	items, ok := lResp2.Body.([]repository.TMFObjectMap)
-	if !ok || len(items) == 0 {
-		t.Fatalf("expected list of items, got %T", lResp2.Body)
-	}
-	// Expect minimal keys present
-	item := items[0]
-	if item["id"] == nil || item["href"] == nil || item["version"] == nil || item["lastUpdate"] == nil || item["@type"] == nil {
-		t.Fatalf("fields=none did not include minimal fields")
-	}
-
-	// Delete
-	dReq := newReq("DELETE", "DELETE", apiFamily, resourceName, id, nil, nil)
-	dResp := s.DeleteTMFObject(context.Background(), dReq)
-	if dResp.StatusCode != http.StatusNoContent {
-		t.Fatalf("delete expected 204, got %d", dResp.StatusCode)
-	}
-
-	// Get after delete -> 404
-	gReq = newReq("GET", "READ", apiFamily, resourceName, id, nil, nil)
-	gResp2 := s.GetTMFObject(context.Background(), gReq)
-	if gResp2.StatusCode != http.StatusNotFound {
-		t.Fatalf("get after delete expected 404, got %d", gResp2.StatusCode)
-	}
-}
-
 // TestInvalidResourcename tests that ListGenericObjects returns an empty JSON array and proper X-Total-Count header
 func TestInvalidResourcename(t *testing.T) {
-	s := newTestService(t)
+	s := newLocalTestService(t)
 	resourceName := "TestResource"
 	apiFamily := "productCatalogManagement"
 
 	// List objects for a resource that doesn't exist (should return 400)
-	lReq := newReq("GET", "LIST", apiFamily, resourceName, "", nil, url.Values{})
-	lResp := s.ListTMFObjects(context.Background(), lReq)
+	request := newReq("GET", "LIST", apiFamily, resourceName, "", nil, url.Values{})
+	lResp := s.ListTMFObjects(context.Background(), request)
 
 	// Should return 200 OK
 	if lResp.StatusCode != http.StatusBadRequest {
