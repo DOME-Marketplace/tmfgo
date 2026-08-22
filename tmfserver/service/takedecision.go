@@ -543,7 +543,7 @@ func (svc *Service) userPolicies(
 	}
 
 	// The rules engine accepted the request
-	slog.Info("rules engine accepted request")
+	slog.Debug("rules engine accepted request")
 	return nil
 }
 

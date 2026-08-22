@@ -1,4 +1,4 @@
-// Copyright 2023-2025 Jesus Ruiz. All rights reserved.
+// Copyright 2023-2026 Jesus Ruiz. All rights reserved.
 // Use of this source code is governed by an Apache 2.0
 // license that can be found in the LICENSE file.
 
@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/hesusruiz/tmforum/internal/errl"
@@ -66,11 +67,12 @@ type PDP struct {
 	// the new version of the policies
 	threadPool sync.Pool
 
+	// Counter of thread pool entries created
+	threadPoolCounter atomic.Int64
+
 	// The http Client to retrieve the policies from a remote server if configured to do so.
 	httpClient *http.Client
 }
-
-var threadPoolCounter int
 
 // NewPDPService creates a new PDP instance.
 func NewPDPService(
@@ -94,8 +96,8 @@ func NewPDPService(
 	// Create the pool of parsed and compiled Starlark policy rules.
 	m.threadPool = sync.Pool{
 		New: func() any {
-			threadPoolCounter++
-			slog.Debug("Creating a new thread entry in the PDP pool", slog.Int("count", threadPoolCounter))
+			count := m.threadPoolCounter.Add(1)
+			slog.Debug("Creating a new thread entry in the PDP pool", slog.Int64("count", count))
 			te, err := m.bufferedParseAndCompileFile(m.scriptname)
 			if err != nil {
 				slog.Error("Error creating a new thread entry in the PDP pool", slog.String("error", err.Error()))
@@ -125,8 +127,8 @@ func NewPDPService(
 
 // bufferedParseAndCompileFile reads a file with Starlark code and compiles it
 func (m *PDP) bufferedParseAndCompileFile(scriptname string) (*threadEntry, error) {
-	te := m.createThreadEntry(scriptname)
-	if te == nil {
+	threadEntry := m.createThreadEntry(scriptname)
+	if threadEntry == nil {
 		return nil, errl.Errorf("error creating thread entry")
 	}
 
@@ -135,18 +137,18 @@ func (m *PDP) bufferedParseAndCompileFile(scriptname string) (*threadEntry, erro
 		return nil, errl.Errorf("error getting file cache entry")
 	}
 
-	te.scriptHash = entry.FileHash
+	threadEntry.scriptHash = entry.FileHash
 	src := entry.Content
 
-	if err := m.compileStarlarkScript(te, string(src)); err != nil {
+	if err := m.compileStarlarkScript(threadEntry, string(src)); err != nil {
 		return nil, errl.Errorf("error compiling Starlark program")
 	}
 
-	if err := m.validateCompiledScript(te); err != nil {
+	if err := m.validateCompiledScript(threadEntry); err != nil {
 		return nil, errl.Errorf("error getting authorize function")
 	}
 
-	return te, nil
+	return threadEntry, nil
 }
 
 // reset checks if the thread entry needs to be recompiled
@@ -192,26 +194,26 @@ func (m *PDP) evaluateDecision(decision Decision, input StarTMFMap) (bool, error
 	}
 
 	// Get a Starlark Thread from the pool to evaluate the policies.
-	ent := m.threadPool.Get()
-	if ent == nil {
+	pe := m.threadPool.Get()
+	if pe == nil {
 		return false, errl.Errorf("getting a thread entry from pool")
 	}
-	defer m.threadPool.Put(ent)
+	defer m.threadPool.Put(pe)
 
-	te := ent.(*threadEntry)
-	if te == nil {
+	entry, ok := pe.(*threadEntry)
+	if !ok {
 		return false, errl.Errorf("invalid entry type in the pool")
 	}
 
 	// Check if the thread is still valid. If not, we need to recompile the file.
-	err := m.reset(te)
+	err := m.reset(entry)
 	if err != nil {
 		return false, err
 	}
 
 	// We mutate the predeclared identifier, so the policy can access the data for this request.
 	// We can also service possible callbacks from the rules engine.
-	te.predeclared["input"] = input
+	entry.predeclared["input"] = input
 
 	// Build the arguments to the StarLark function, which is empty.
 	var args st.Tuple
@@ -223,7 +225,7 @@ func (m *PDP) evaluateDecision(decision Decision, input StarTMFMap) (bool, error
 		return false, errl.Errorf("authentication not yet implemented")
 	} else {
 		// Call the 'authorize' function
-		result, err = st.Call(te.thread, te.authorizeFunction, args, nil)
+		result, err = st.Call(entry.thread, entry.authorizeFunction, args, nil)
 	}
 
 	if err != nil {

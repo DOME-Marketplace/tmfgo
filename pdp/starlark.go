@@ -18,7 +18,7 @@ import (
 	"go.starlark.net/lib/math"
 	sttime "go.starlark.net/lib/time"
 	"go.starlark.net/repl"
-	st "go.starlark.net/starlark"
+	star "go.starlark.net/starlark"
 	"go.starlark.net/starlarkstruct"
 	"go.starlark.net/syntax"
 )
@@ -32,17 +32,17 @@ func init() {
 	// Create a StarLark module with our own utility functions
 	var Module = &starlarkstruct.Module{
 		Name: "star",
-		Members: st.StringDict{
-			"getinput": st.NewBuiltin("getinput", getInputElement),
-			"getbody":  st.NewBuiltin("getbody", getRequestBody),
+		Members: star.StringDict{
+			"getinput": star.NewBuiltin("getinput", getInputElement),
+			"getbody":  star.NewBuiltin("getbody", getRequestBody),
 		},
 	}
 
 	// Set the global Starlark environment with required modules, including our own
-	st.Universe["json"] = starjson.Module
-	st.Universe["time"] = sttime.Module
-	st.Universe["math"] = math.Module
-	st.Universe["star"] = Module
+	star.Universe["json"] = starjson.Module
+	star.Universe["time"] = sttime.Module
+	star.Universe["math"] = math.Module
+	star.Universe["star"] = Module
 }
 
 // threadEntry is one entry in a pool of Starlark threads for policy rules execution.
@@ -52,10 +52,10 @@ func init() {
 // Another benefit is that it facilitates the dynamic update of policy files without
 // affecting concurrency.
 type threadEntry struct {
-	globals           st.StringDict
-	predeclared       st.StringDict
-	thread            *st.Thread
-	authorizeFunction *st.Function
+	globals           star.StringDict
+	predeclared       star.StringDict
+	thread            *star.Thread
+	authorizeFunction *star.Function
 	scriptname        string
 	scriptHash        uint64
 }
@@ -68,17 +68,17 @@ func (m *PDP) createThreadEntry(scriptname string) *threadEntry {
 	logger := slog.Default()
 
 	// The compiled program context will be stored in a new Starlark thread for each invocation
-	te.thread = &st.Thread{
+	te.thread = &star.Thread{
 		Load: repl.MakeLoadOptions(&syntax.FileOptions{}),
-		Print: func(_ *st.Thread, msg string) {
-			logger.Info("rules => " + msg)
+		Print: func(_ *star.Thread, msg string) {
+			logger.Debug("rules => " + msg)
 		},
 		Name: "exec " + scriptname,
 	}
 
 	// Create a predeclared environment holding the 'input' object.
 	// For the moment it is empty, but it will be mutated for each request for authentication.
-	te.predeclared = st.StringDict{}
+	te.predeclared = star.StringDict{}
 	te.predeclared["input"] = StarTMFMap{}
 
 	return te
@@ -89,7 +89,7 @@ func (m *PDP) compileStarlarkScript(te *threadEntry, src string) error {
 	// Parse and execute the top-level commands in the script file
 	// The globals are thread-local and not process-global
 	var err error
-	te.globals, err = st.ExecFileOptions(&syntax.FileOptions{}, te.thread, te.scriptname, src, te.predeclared)
+	te.globals, err = star.ExecFileOptions(&syntax.FileOptions{}, te.thread, te.scriptname, src, te.predeclared)
 	if err != nil {
 		return errl.Errorf("error compiling Starlark program: %w", err)
 	}
@@ -115,7 +115,7 @@ func (m *PDP) validateCompiledScript(te *threadEntry) error {
 }
 
 // getGlobalFunction retrieves a Callable from the supplied globals dictionary.
-func getGlobalFunction(globals st.StringDict, funcName string) (*st.Function, error) {
+func getGlobalFunction(globals star.StringDict, funcName string) (*star.Function, error) {
 
 	// Check that we have the function
 	f, ok := globals[funcName]
@@ -126,7 +126,7 @@ func getGlobalFunction(globals st.StringDict, funcName string) (*st.Function, er
 	}
 
 	// Check that is is a Callable
-	starFunction, ok := f.(*st.Function)
+	starFunction, ok := f.(*star.Function)
 	if !ok {
 		err := errl.Errorf("expected a Callable but got %v", f.Type())
 		log.Println(err.Error())
@@ -137,37 +137,37 @@ func getGlobalFunction(globals st.StringDict, funcName string) (*st.Function, er
 }
 
 // getInputElement is a Starlark builtin function to get input elements
-func getInputElement(thread *st.Thread, _ *st.Builtin, args st.Tuple, kwargs []st.Tuple) (st.Value, error) {
+func getInputElement(thread *star.Thread, _ *star.Builtin, args star.Tuple, kwargs []star.Tuple) (star.Value, error) {
 
 	// Get the current input structure being processed
 	r := thread.Local("inputrequest")
 	input, ok := r.(StarTMFMap)
 	if !ok {
-		return st.None, errl.Errorf("no request found in thread locals")
+		return star.None, errl.Errorf("no request found in thread locals")
 	}
 
 	// Get the element
 	var elemPath string
-	err := st.UnpackPositionalArgs("input2", args, kwargs, 1, &elemPath)
+	err := star.UnpackPositionalArgs("input2", args, kwargs, 1, &elemPath)
 	if err != nil {
 		return nil, err
 	}
 
 	elem, err := GetValue(input, elemPath)
 	if err != nil {
-		return st.None, nil
+		return star.None, nil
 	}
 	return elem, nil
 }
 
 // getRequestBody is a Starlark builtin function to get request body
-func getRequestBody(thread *st.Thread, _ *st.Builtin, args st.Tuple, kwargs []st.Tuple) (st.Value, error) {
+func getRequestBody(thread *star.Thread, _ *star.Builtin, args star.Tuple, kwargs []star.Tuple) (star.Value, error) {
 
 	// Get the current HTTP request being processed
 	r := thread.Local("httprequest")
 	request, ok := r.(*http.Request)
 	if !ok {
-		return st.None, errl.Errorf("no request found in thread locals")
+		return star.None, errl.Errorf("no request found in thread locals")
 	}
 
 	// Read the body from the request and store in thread locals in case we need it later
@@ -178,24 +178,24 @@ func getRequestBody(thread *st.Thread, _ *st.Builtin, args st.Tuple, kwargs []st
 	thread.SetLocal("requestbody", bytes)
 
 	// Return string for the Starlark script
-	body := st.String(bytes)
+	body := star.String(bytes)
 
 	return body, nil
 }
 
 // Get returns a child of the given value according to a dotted path.
 // The source data must be either map[string]any or []any
-func GetValue(a StarTMFMap, path string) (st.Value, error) {
+func GetValue(a StarTMFMap, path string) (star.Value, error) {
 	if a == nil {
-		return st.None, errl.Errorf("input map cannot be nil")
+		return star.None, errl.Errorf("input map cannot be nil")
 	}
 
 	if path == "" {
-		return st.None, errl.Errorf("path cannot be empty")
+		return star.None, errl.Errorf("path cannot be empty")
 	}
 
 	parts := strings.Split(path, ".")
-	var src st.Value = a
+	var src star.Value = a
 
 	// Get the value.
 	for pos, pathComponent := range parts {
@@ -204,8 +204,8 @@ func GetValue(a StarTMFMap, path string) (st.Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		if src == st.None {
-			return st.None, nil
+		if src == star.None {
+			return star.None, nil
 		}
 	}
 
@@ -213,7 +213,7 @@ func GetValue(a StarTMFMap, path string) (st.Value, error) {
 }
 
 // getValueAtPath retrieves a value at a specific path component
-func getValueAtPath(src st.Value, pathComponent string, pathSoFar []string) (st.Value, error) {
+func getValueAtPath(src star.Value, pathComponent string, pathSoFar []string) (star.Value, error) {
 	switch src.Type() {
 	case "tmfmap":
 		return getValueFromMap(src.(StarTMFMap), pathComponent)
@@ -227,15 +227,15 @@ func getValueAtPath(src st.Value, pathComponent string, pathSoFar []string) (st.
 }
 
 // getValueFromMap retrieves a value from a map
-func getValueFromMap(m StarTMFMap, key string) (st.Value, error) {
+func getValueFromMap(m StarTMFMap, key string) (star.Value, error) {
 	if value, ok := m[key]; ok {
 		return anyToValue(value), nil
 	}
-	return st.None, nil
+	return star.None, nil
 }
 
 // getValueFromList retrieves a value from a list by index
-func getValueFromList(l StarTMFList, pathComponent string, pathSoFar []string) (st.Value, error) {
+func getValueFromList(l StarTMFList, pathComponent string, pathSoFar []string) (star.Value, error) {
 	// If data is an array, the path component must be an integer (base 10) to index the array
 	index, err := strconv.ParseInt(pathComponent, 10, 0)
 	if err != nil {
@@ -254,12 +254,12 @@ func getValueFromList(l StarTMFList, pathComponent string, pathSoFar []string) (
 }
 
 // anyToValue converts a Go value to a Starlark value
-func anyToValue(value any) st.Value {
+func anyToValue(value any) star.Value {
 
 	// Special case for strings
 	vvvv := reflect.ValueOf(value)
 	if vvvv.Kind() == reflect.String {
-		return st.String(vvvv.String())
+		return star.String(vvvv.String())
 	}
 
 	switch v := value.(type) {
@@ -268,24 +268,24 @@ func anyToValue(value any) st.Value {
 	case StarTMFList:
 		return StarTMFList(v)
 	case string:
-		return st.String(v)
-	case st.String:
-		return st.String(v)
+		return star.String(v)
+	case star.String:
+		return star.String(v)
 	case map[string]any:
 		return StarTMFMap(v)
 	case []any:
-		var l []st.Value
+		var l []star.Value
 		for _, elem := range v {
 			l = append(l, anyToValue(elem))
 		}
 		return StarTMFList(l)
 	case bool:
-		return st.Bool(v)
+		return star.Bool(v)
 	case float64:
-		return st.Float(v)
+		return star.Float(v)
 	case int:
-		return st.MakeInt(v)
+		return star.MakeInt(v)
 	default:
-		return st.None
+		return star.None
 	}
 }
