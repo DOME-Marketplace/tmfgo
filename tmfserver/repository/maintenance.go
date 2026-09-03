@@ -87,3 +87,10 @@ func forceWalTruncate(repo *DBService) error {
 	_, err := repo.db.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
 	return err
 }
+
+func walCheckpointPassive(repo *DBService) error {
+	// CHECKPOINT ensures the checkpoint runs to completion, deleting the WAL file.
+	// This call does not block, even if a write is in progress.
+	_, err := repo.db.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+	return err
+}

@@ -1,18 +1,22 @@
 package service
 
 import (
-	"net/url"
-
 	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
+	"github.com/hesusruiz/tmforum/types"
 )
+
+// Type aliases for errors so other service files can still use them directly
+type ErrObjectExists = repo.ErrObjectExists
+type ErrObjectNotFound = repo.ErrObjectNotFound
 
 // TMFStorer abstracts persistence operations for TMF objects.
 // It is used for plugging-in different persistence systems
 type TMFStorer interface {
-	CreateObject(obj *repo.TMFRecord) error
-	GetObject(id, resourceName string) (*repo.TMFRecord, error)
-	UpdateObject(obj *repo.TMFRecord) error
-	UpsertObject(obj *repo.TMFRecord) error
-	DeleteObject(id, resourceName string) error
-	ListObjects(healthRequest bool, resourceName string, queryParams url.Values, filter repo.ObjectFilter) ([]repo.TMFRecord, error)
+	CreateObject(req *types.Request, obj *repo.TMFRecord) error
+	GetObject(req *types.Request, id, resourceName string) (*repo.TMFRecord, error)
+	UpdateObject(req *types.Request, obj *repo.TMFRecord) error
+	UpsertObject(req *types.Request, obj *repo.TMFRecord) error
+	DeleteObject(req *types.Request, id, resourceName string) error
+	ListObjects(req *types.Request, filter repo.ObjectFilter) ([]repo.TMFRecord, error)
 }
+

@@ -8,13 +8,34 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/hesusruiz/tmforum/types"
 	"github.com/mattn/go-sqlite3"
 )
 
 // CreateTMFTableSQL is the SQL statement to create the table 'tmf_object', holding all objects of all types
+//
+// The most important field is "content", which stores the TM Forum object in SQLite jsonb format.
+// Many other fields are just a copy of some fields in the "content" field, to facilitate SQL queries.
+// The code is responsible for maintaining these "convenience" fields always in sync with the contents of the JSON object.
+//
+// The fields in the table are the following:
+// "id": copy of the "id" field in the JSON representation.
+// "type": copy of the "type" field in the JSON representation.
+// "version": copy of the "version" field in the JSON representation.
+// "api_version": the version of the TMF API that was used. This is for the future, as now it is always "v4".
+// "seller": copy of the "seller" identification found in the "relatedParty" object with role "seller".
+// "seller_operator": copy of the "seller_operator" identification found in the "relatedParty" object with role "seller_operator".
+// "buyer": copy of the "buyer" identification found in the "relatedParty" object with role "buyer".
+// "buyer_operator": copy of the "buyer_operator" identification found in the "relatedParty" object with role "buyer_operator".
+// "last_update": copy of the "last_update" field in the JSON representation.
+// "content": the content of the object in JSON format.
+// "random": a random value to be used in queries for random ordering of lists, to make them fairer when presented to users.
+// "created_at": the creation time of the object in Unix format (e.g. 123456789012)
+// "updated_at": the update time of the object in Unix format (e.g. 123456789012)
 const CreateTMFTableSQL = `CREATE TABLE IF NOT EXISTS tmf_object (
 	"id" TEXT NOT NULL,
 	"type" TEXT NOT NULL,
@@ -57,13 +78,57 @@ const DeleteTMFTableSQL = `DROP TABLE IF EXISTS tmf_object;`
 // VacuumSQL is the SQL statement to vacuum the database
 const VacuumSQL = `VACUUM;`
 
+// CreateTMFOpLogTableSQL is the SQL statement to create the table 'tmf_operation_log' and its indexes.
+const CreateTMFOpLogTableSQL = `CREATE TABLE IF NOT EXISTS tmf_operation_log (
+	"seq"                     INTEGER PRIMARY KEY,
+	"action"                  TEXT NOT NULL,
+	"object_id"               TEXT NOT NULL,
+	"object_type"             TEXT NOT NULL,
+	"old_version"             TEXT DEFAULT '',
+	"new_version"             TEXT DEFAULT '',
+	"old_last_update"         TEXT DEFAULT '',
+	"new_last_update"         TEXT DEFAULT '',
+	"old_content"             BLOB,
+	"new_content"             BLOB,
+	"caller_id"               TEXT DEFAULT '',
+	"server_id"               TEXT DEFAULT '',
+	"access_token"            TEXT DEFAULT '',
+	"created_at"              INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_op_log_object ON tmf_operation_log("object_id", "object_type");
+CREATE INDEX IF NOT EXISTS idx_op_log_created ON tmf_operation_log("created_at");`
+
+// DeleteTMFOpLogTableSQL is the SQL statement to delete the table 'tmf_operation_log'
+const DeleteTMFOpLogTableSQL = `DROP TABLE IF EXISTS tmf_operation_log;`
+
+// TMFOpLogRecord represents an entry in the tmf_operation_log table.
+type TMFOpLogRecord struct {
+	Seq           int64  `db:"seq"`
+	Action        string `db:"action"`
+	ObjectID      string `db:"object_id"`
+	ObjectType    string `db:"object_type"`
+	OldVersion    string `db:"old_version"`
+	NewVersion    string `db:"new_version"`
+	OldLastUpdate string `db:"old_last_update"`
+	NewLastUpdate string `db:"new_last_update"`
+	OldContent    []byte `db:"old_content"`
+	NewContent    []byte `db:"new_content"`
+	CallerID      string `db:"caller_id"`
+	ServerID      string `db:"server_id"`
+	AccessToken   string `db:"access_token"`
+	CreatedAt     int64  `db:"created_at"`
+}
+
 // DBService is the database layer for TMF objects.
 type DBService struct {
-	db *sql.DB
+	db                 *sql.DB
+	server_operator_id string
+	stopCheckpoint     chan struct{}
+	closeOnce          sync.Once
 }
 
 // NewDBService creates a new database service.
-func NewDBService(dbName string) (*DBService, error) {
+func NewDBService(dbName string, serverOperatorID string) (*DBService, error) {
 
 	// Build the connection string with the parameters we want to use.
 	// We specify the parameters even if they are the default ones, to make it explicit.
@@ -110,7 +175,29 @@ func NewDBService(dbName string) (*DBService, error) {
 		return nil, errl.Error(err)
 	}
 
-	return &DBService{db: db}, nil
+	repo := &DBService{
+		db:                 db,
+		server_operator_id: serverOperatorID,
+		stopCheckpoint:     make(chan struct{}),
+	}
+
+	// Start a background timer to perform a passive WAL checkpoint every minute
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-repo.stopCheckpoint:
+				return
+			case <-ticker.C:
+				if err := walCheckpointPassive(repo); err != nil {
+					slog.Debug("passive WAL checkpoint failed", slog.Any("error", err))
+				}
+			}
+		}
+	}()
+
+	return repo, nil
 }
 
 // CreateTables creates the tables in the database if they do not exist.
@@ -119,6 +206,10 @@ func CreateTables(db *sql.DB) error {
 
 	if _, err := db.Exec(CreateTMFTableSQL); err != nil {
 		return errl.Errorf("failed to create tmf_object table: %w", err)
+	}
+
+	if _, err := db.Exec(CreateTMFOpLogTableSQL); err != nil {
+		return errl.Errorf("failed to create tmf_operation_log table: %w", err)
 	}
 
 	if err := RunMigrationsUp(db); err != nil {
@@ -168,11 +259,108 @@ func (e *ErrObjectNotFound) Is(target error) bool {
 
 // Close closes the database connection.
 func (repo *DBService) Close() error {
+	repo.closeOnce.Do(func() {
+		if repo.stopCheckpoint != nil {
+			close(repo.stopCheckpoint)
+		}
+	})
 	return repo.db.Close()
 }
 
+// getObjectWithTx retrieves a TMF object within an existing transaction.
+func (repo *DBService) getObjectWithTx(tx *sql.Tx, id, objectType string) (*TMFRecord, error) {
+	var obj TMFRecord
+	err := tx.QueryRow(`
+		SELECT id, type, version, api_version, seller, seller_operator, buyer, buyer_operator, last_update, json(content), random, created_at, updated_at
+		FROM tmf_object
+		WHERE id = :id AND type = :type`,
+		sql.Named("id", id),
+		sql.Named("type", objectType),
+	).Scan(
+		&obj.ID, &obj.Type, &obj.Version, &obj.APIVersion,
+		&obj.Seller, &obj.SellerOperator, &obj.Buyer, &obj.BuyerOperator,
+		&obj.LastUpdate, &obj.Content, &obj.Random, &obj.CreatedAt, &obj.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil // Object not found
+	} else if err != nil {
+		return nil, errl.Errorf("failed to get object id=%s type=%s: %w", id, objectType, err)
+	}
+	return &obj, nil
+}
+
+// recordOperation writes an audit/replication log entry to tmf_operation_log within an existing transaction.
+func (repo *DBService) recordOperation(tx *sql.Tx, req *types.Request, action string, oldRec, newRec *TMFRecord) error {
+	var objID, objType string
+	var oldVersion, oldLastUpdate string
+	var newVersion, newLastUpdate string
+	var oldContent, newContent any
+
+	if oldRec != nil {
+		objID = oldRec.ID
+		objType = oldRec.Type
+		oldVersion = oldRec.Version
+		oldLastUpdate = oldRec.LastUpdate
+		if len(oldRec.Content) > 0 {
+			oldContent = oldRec.Content
+		}
+	}
+
+	if newRec != nil {
+		objID = newRec.ID
+		objType = newRec.Type
+		newVersion = newRec.Version
+		newLastUpdate = newRec.LastUpdate
+		if len(newRec.Content) > 0 {
+			newContent = newRec.Content
+		}
+	}
+
+	var callerID, accessToken string
+	if req != nil {
+		callerID = req.AuthUser.OrganizationIdentifier
+		accessToken = req.AuthUser.AccessToken
+	}
+
+	now := time.Now().Unix()
+
+	query := `INSERT INTO tmf_operation_log (
+		action, object_id, object_type,
+		old_version, new_version, old_last_update, new_last_update,
+		old_content, new_content,
+		caller_id, server_id, access_token, created_at
+	) VALUES (
+		:action, :object_id, :object_type,
+		:old_version, :new_version, :old_last_update, :new_last_update,
+		CASE WHEN :old_content IS NULL THEN NULL ELSE jsonb(:old_content) END,
+		CASE WHEN :new_content IS NULL THEN NULL ELSE jsonb(:new_content) END,
+		:caller_id, :server_id, :access_token, :created_at
+	)`
+
+	_, err := tx.Exec(query,
+		sql.Named("action", action),
+		sql.Named("object_id", objID),
+		sql.Named("object_type", objType),
+		sql.Named("old_version", oldVersion),
+		sql.Named("new_version", newVersion),
+		sql.Named("old_last_update", oldLastUpdate),
+		sql.Named("new_last_update", newLastUpdate),
+		sql.Named("old_content", oldContent),
+		sql.Named("new_content", newContent),
+		sql.Named("caller_id", callerID),
+		sql.Named("server_id", repo.server_operator_id),
+		sql.Named("access_token", accessToken),
+		sql.Named("created_at", now),
+	)
+	if err != nil {
+		return errl.Errorf("failed to record operation in log: %w", err)
+	}
+
+	return nil
+}
+
 // CreateObject creates a new TMF object. Returns &ErrObjectExists if the object already existed.
-func (repo *DBService) CreateObject(obj *TMFRecord) error {
+func (repo *DBService) CreateObject(req *types.Request, obj *TMFRecord) error {
 	if obj == nil {
 		return errl.Errorf("object is nil")
 	}
@@ -183,8 +371,14 @@ func (repo *DBService) CreateObject(obj *TMFRecord) error {
 	obj.CreatedAt = now.Unix()
 	obj.UpdatedAt = now.Unix()
 
+	tx, err := repo.db.Begin()
+	if err != nil {
+		return errl.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
 	// Execute the SQL
-	_, err := repo.db.Exec(`INSERT INTO tmf_object
+	_, err = tx.Exec(`INSERT INTO tmf_object
 		(id, type, version, api_version, seller, seller_operator, buyer, buyer_operator, last_update, content, created_at, updated_at)
 		VALUES (:id, :type, :version, :api_version, :seller, :seller_operator, :buyer, :buyer_operator, :last_update, jsonb(:content), :created_at, :updated_at)`,
 		sql.Named("id", obj.ID),
@@ -201,20 +395,24 @@ func (repo *DBService) CreateObject(obj *TMFRecord) error {
 		sql.Named("updated_at", obj.UpdatedAt),
 	)
 	if err != nil {
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) {
+		if sqliteErr, ok := errors.AsType[sqlite3.Error](err); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
 				return &ErrObjectExists{ID: obj.ID, Type: obj.Type}
 			}
 		}
-		err = errl.Errorf("failed to create object id=%s type=%s: %w", obj.ID, obj.Type, err)
+		return errl.Errorf("failed to create object id=%s type=%s: %w", obj.ID, obj.Type, err)
 	}
-	return err
+
+	if err := repo.recordOperation(tx, req, "CREATE", nil, obj); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // GetObject retrieves a TMF object by its ID and type.
 // If the object is not found anywhere, it returns a nil object and no error.
-func (repo *DBService) GetObject(id, objectType string) (*TMFRecord, error) {
+func (repo *DBService) GetObject(req *types.Request, id, objectType string) (*TMFRecord, error) {
 	slog.Debug("dbLayer: getObject", slog.String("id", id), slog.String("type", objectType))
 
 	var obj TMFRecord
@@ -243,8 +441,25 @@ func (repo *DBService) GetObject(id, objectType string) (*TMFRecord, error) {
 //
 // Returns:
 //   - ErrObjectNotFound  – no row exists for the given (id, type).
-func (repo *DBService) UpdateObject(obj *TMFRecord) error {
+func (repo *DBService) UpdateObject(req *types.Request, obj *TMFRecord) error {
+	if obj == nil {
+		return errl.Errorf("object is nil")
+	}
 	slog.Debug("dbLayer: UpdateObject", slog.String("id", obj.ID), slog.String("type", obj.Type), slog.String("version", obj.Version))
+
+	tx, err := repo.db.Begin()
+	if err != nil {
+		return errl.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	oldObj, err := repo.getObjectWithTx(tx, obj.ID, obj.Type)
+	if err != nil {
+		return err
+	}
+	if oldObj == nil {
+		return &ErrObjectNotFound{ID: obj.ID, Type: obj.Type}
+	}
 
 	// Make sure timestamps are correct
 	obj.UpdatedAt = time.Now().Unix()
@@ -252,7 +467,7 @@ func (repo *DBService) UpdateObject(obj *TMFRecord) error {
 	// Update the row for this object, storing the latest version and content.
 	// Note: seller and buyer are intentionally excluded from the SET clause – they cannot
 	// be changed after the object is created.
-	res, err := repo.db.Exec(`UPDATE tmf_object
+	res, err := tx.Exec(`UPDATE tmf_object
 		SET   version     = :version,
 		      last_update = :last_update,
 		      content     = jsonb(:content),
@@ -279,7 +494,11 @@ func (repo *DBService) UpdateObject(obj *TMFRecord) error {
 		return &ErrObjectNotFound{ID: obj.ID, Type: obj.Type}
 	}
 
-	return nil
+	if err := repo.recordOperation(tx, req, "UPDATE", oldObj, obj); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // UpsertObject creates or updates a TMF object.
@@ -288,56 +507,163 @@ func (repo *DBService) UpdateObject(obj *TMFRecord) error {
 //   - If no row exists for the given (id, type): the object is inserted.
 //   - If the same (id, type) already exists: the row is updated in-place
 //     (version, content, last_update, updated_at). Seller and buyer are NOT changed.
-func (repo *DBService) UpsertObject(obj *TMFRecord) error {
+func (repo *DBService) UpsertObject(req *types.Request, obj *TMFRecord) error {
+	if obj == nil {
+		return errl.Errorf("object is nil")
+	}
 	slog.Debug("dbLayer: UpsertObject", slog.String("id", obj.ID), slog.String("type", obj.Type), slog.String("version", obj.Version))
 
-	// Set timestamps. For the insert path both are set; for the in-place update path
-	// (ON CONFLICT) created_at is intentionally absent from the DO UPDATE SET clause
-	// so the original creation time is preserved.
+	tx, err := repo.db.Begin()
+	if err != nil {
+		return errl.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	oldObj, err := repo.getObjectWithTx(tx, obj.ID, obj.Type)
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
-	obj.CreatedAt = now.Unix()
 	obj.UpdatedAt = now.Unix()
 
-	// Insert a new row (new object), or update the matching row in-place
-	// when the exact same (id, type) already exists.
-	// seller and buyer are excluded from DO UPDATE SET — they are immutable after creation.
-	_, err := repo.db.Exec(`INSERT INTO tmf_object
-		(id, type, version, api_version, seller, seller_operator, buyer, buyer_operator,last_update, content, created_at, updated_at)
-		VALUES (:id, :type, :version, :api_version, :seller, :seller_operator, :buyer, :buyer_operator, :last_update, jsonb(:content), :created_at, :updated_at)
-		ON CONFLICT(id, type) DO UPDATE SET
-			version     = excluded.version,
-			last_update = excluded.last_update,
-			content     = jsonb(excluded.content),
-			updated_at  = excluded.updated_at`,
-		sql.Named("id", obj.ID),
-		sql.Named("type", obj.Type),
-		sql.Named("version", obj.Version),
-		sql.Named("api_version", obj.APIVersion),
-		sql.Named("seller", obj.Seller),
-		sql.Named("seller_operator", obj.SellerOperator),
-		sql.Named("buyer", obj.Buyer),
-		sql.Named("buyer_operator", obj.BuyerOperator),
-		sql.Named("last_update", obj.LastUpdate),
-		sql.Named("content", obj.Content),
-		sql.Named("created_at", obj.CreatedAt),
-		sql.Named("updated_at", obj.UpdatedAt),
-	)
-	if err != nil {
-		return errl.Errorf("failed to upsert object id=%s type=%s: %w", obj.ID, obj.Type, err)
+	var action string
+	if oldObj == nil {
+		action = "CREATE"
+		obj.CreatedAt = now.Unix()
+
+		_, err = tx.Exec(`INSERT INTO tmf_object
+			(id, type, version, api_version, seller, seller_operator, buyer, buyer_operator, last_update, content, created_at, updated_at)
+			VALUES (:id, :type, :version, :api_version, :seller, :seller_operator, :buyer, :buyer_operator, :last_update, jsonb(:content), :created_at, :updated_at)`,
+			sql.Named("id", obj.ID),
+			sql.Named("type", obj.Type),
+			sql.Named("version", obj.Version),
+			sql.Named("api_version", obj.APIVersion),
+			sql.Named("seller", obj.Seller),
+			sql.Named("seller_operator", obj.SellerOperator),
+			sql.Named("buyer", obj.Buyer),
+			sql.Named("buyer_operator", obj.BuyerOperator),
+			sql.Named("last_update", obj.LastUpdate),
+			sql.Named("content", obj.Content),
+			sql.Named("created_at", obj.CreatedAt),
+			sql.Named("updated_at", obj.UpdatedAt),
+		)
+		if err != nil {
+			return errl.Errorf("failed to insert object id=%s type=%s: %w", obj.ID, obj.Type, err)
+		}
+	} else {
+		action = "UPDATE"
+		obj.CreatedAt = oldObj.CreatedAt
+
+		_, err = tx.Exec(`UPDATE tmf_object
+			SET   version     = :version,
+			      last_update = :last_update,
+			      content     = jsonb(:content),
+			      updated_at  = :updated_at
+			WHERE id      = :id
+			  AND type    = :type`,
+			sql.Named("version", obj.Version),
+			sql.Named("last_update", obj.LastUpdate),
+			sql.Named("content", obj.Content),
+			sql.Named("updated_at", obj.UpdatedAt),
+			sql.Named("id", obj.ID),
+			sql.Named("type", obj.Type),
+		)
+		if err != nil {
+			return errl.Errorf("failed to update object id=%s type=%s: %w", obj.ID, obj.Type, err)
+		}
 	}
-	return nil
+
+	if err := repo.recordOperation(tx, req, action, oldObj, obj); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // DeleteObject deletes a TMF object by its ID and type.
-func (repo *DBService) DeleteObject(id, resourceName string) error {
+func (repo *DBService) DeleteObject(req *types.Request, id, resourceName string) error {
 	slog.Debug("dbLayer: deleteObject", slog.String("id", id), slog.String("type", resourceName))
 
-	// Execute the SQL
-	_, err := repo.db.Exec("DELETE FROM tmf_object WHERE id = ? AND type = ?", id, resourceName)
+	tx, err := repo.db.Begin()
 	if err != nil {
-		err = errl.Errorf("failed to delete object id=%s type=%s: %w", id, resourceName, err)
+		return errl.Errorf("failed to begin transaction: %w", err)
 	}
-	return err
+	defer tx.Rollback()
+
+	oldObj, err := repo.getObjectWithTx(tx, id, resourceName)
+	if err != nil {
+		return err
+	}
+
+	// Execute the SQL
+	res, err := tx.Exec("DELETE FROM tmf_object WHERE id = ? AND type = ?", id, resourceName)
+	if err != nil {
+		return errl.Errorf("failed to delete object id=%s type=%s: %w", id, resourceName, err)
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return errl.Errorf("failed to get rows affected object id=%s type=%s: %w", id, resourceName, err)
+	}
+
+	if rowsAffected > 0 {
+		if err := repo.recordOperation(tx, req, "DELETE", oldObj, nil); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetOperationLogs retrieves operation log entries with seq > afterSeq, ordered by seq ASC.
+// If limit <= 0, a default of 100 is used.
+func (repo *DBService) GetOperationLogs(afterSeq int64, limit int) ([]TMFOpLogRecord, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+
+	query := `
+		SELECT seq, action, object_id, object_type,
+		       old_version, new_version, old_last_update, new_last_update,
+		       json(old_content), json(new_content),
+		       caller_id, server_id, access_token, created_at
+		FROM tmf_operation_log
+		WHERE seq > ?
+		ORDER BY seq ASC
+		LIMIT ?`
+
+	rows, err := repo.db.Query(query, afterSeq, limit)
+	if err != nil {
+		return nil, errl.Errorf("failed to query operation logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []TMFOpLogRecord
+	for rows.Next() {
+		var l TMFOpLogRecord
+		var oldContentStr, newContentStr sql.NullString
+		if err := rows.Scan(
+			&l.Seq, &l.Action, &l.ObjectID, &l.ObjectType,
+			&l.OldVersion, &l.NewVersion, &l.OldLastUpdate, &l.NewLastUpdate,
+			&oldContentStr, &newContentStr,
+			&l.CallerID, &l.ServerID, &l.AccessToken, &l.CreatedAt,
+		); err != nil {
+			return nil, errl.Errorf("failed to scan operation log row: %w", err)
+		}
+		if oldContentStr.Valid {
+			l.OldContent = []byte(oldContentStr.String)
+		}
+		if newContentStr.Valid {
+			l.NewContent = []byte(newContentStr.String)
+		}
+		logs = append(logs, l)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errl.Errorf("iterating operation log rows: %w", err)
+	}
+
+	return logs, nil
 }
 
 // ObjectFilter is a function that filters TMF objects. If it returns false, the object is excluded from the result.
@@ -346,7 +672,15 @@ type ObjectFilter func(obj *TMFRecord) bool
 // ListObjects retrieves TMF objects of a given type, returning only the latest version for each unique ID.
 // It supports pagination, filtering, and sorting according to TMF630 guidelines.
 // filter is a callback function that is called for each object. If it returns false, the object is excluded from the result.
-func (repo *DBService) ListObjects(healthRequest bool, resourceName string, queryParams url.Values, filter ObjectFilter) ([]TMFRecord, error) {
+func (repo *DBService) ListObjects(req *types.Request, filter ObjectFilter) ([]TMFRecord, error) {
+	healthRequest := false
+	resourceName := ""
+	var queryParams url.Values
+	if req != nil {
+		healthRequest = req.HealthRequest
+		resourceName = req.ResourceName
+		queryParams = req.QueryParams
+	}
 	if !healthRequest {
 		slog.Debug("dbLayer: listObjects", "type", resourceName, "queryParams", queryParams)
 	}

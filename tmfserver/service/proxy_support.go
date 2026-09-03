@@ -29,7 +29,7 @@ func (svc *Service) createRemoteOrLocalObject(ctx context.Context, req *Request,
 		// Convert object to storage representation
 		repoObject := objMap.ToTMFRecord(req.ResourceName)
 
-		if err := svc.CreateObject(repoObject); err != nil {
+		if err := svc.storage.CreateObject(req, repoObject); err != nil {
 			if errors.Is(err, &ErrObjectExists{}) {
 				return ErrorResponsef(http.StatusBadRequest, "object %s already exists: %w", objMap.ID(), err)
 			} else {
@@ -54,8 +54,7 @@ func (svc *Service) createRemoteOrLocalObject(ctx context.Context, req *Request,
 	remoteObjectMap, err := svc.tmfClient.TMFPost(ctx, req, objMap)
 	if err != nil {
 
-		var apiErr *ApiError
-		if errors.As(err, &apiErr) {
+		if apiErr, ok := errors.AsType[*ApiError](err); ok {
 			return &Response{StatusCode: apiErr.StatusCode(), Body: apiErr}
 		}
 
@@ -71,7 +70,7 @@ func (svc *Service) createRemoteOrLocalObject(ctx context.Context, req *Request,
 	}
 
 	// Create the new object in the local database
-	if err := svc.CreateObject(remoteObjectMap.ToTMFRecord(req.ResourceName)); err != nil {
+	if err := svc.storage.CreateObject(req, remoteObjectMap.ToTMFRecord(req.ResourceName)); err != nil {
 		// If we get an error, just log the error because we return the object created remotely
 		slog.Error("failed to create local object", slog.String("id", remoteObjectMap.ID()), slog.String("resourceName", req.ResourceName), slog.String("location", remoteObjectMap.Href()))
 	}
@@ -159,7 +158,7 @@ func (svc *Service) updateRemoteOrLocalObject(ctx context.Context, req *Request,
 		UpdatedAt:  time.Now().Unix(),
 	}
 
-	if err := svc.UpdateObject(existingObject); err != nil {
+	if err := svc.storage.UpdateObject(req, existingObject); err != nil {
 		return ErrorResponsef(http.StatusInternalServerError, "failed to update object in service: %w", err)
 	}
 
@@ -255,7 +254,7 @@ func (svc *Service) listRemoteObjects(ctx context.Context, req *Request, userLim
 
 			// Convert object to storage representation to save it in the local database
 			storageObject := receivedObject.ToTMFRecord(req.ResourceName)
-			if err := svc.UpsertObject(storageObject); err != nil {
+			if err := svc.storage.UpsertObject(req, storageObject); err != nil {
 				if !errors.Is(err, &ErrObjectExists{}) {
 					invalidObjects++
 					slog.Error("error saving object in local database", "error", err)
@@ -328,7 +327,7 @@ func (svc *Service) listLocalObjects(req *Request, userLimit, userOffset int, fi
 	req.QueryParams.Set("offset", strconv.Itoa(userOffset))
 	req.QueryParams.Set("limit", strconv.Itoa(userLimit))
 
-	storageObjects, err := svc.ListObjects(req, func(storageObject *repo.TMFRecord) bool {
+	storageObjects, err := svc.storage.ListObjects(req, func(storageObject *repo.TMFRecord) bool {
 		// Convert to internal object representation
 		objMap, err := storageObject.ToTMFObjectMap()
 		if err != nil {
@@ -391,7 +390,7 @@ func (svc *Service) getLocalOrRemoteObject(ctx context.Context, req *Request) (*
 	}
 
 	// Check if we have the object locally
-	obj, err := svc.GetObject(objectID, req.ResourceName)
+	obj, err := svc.storage.GetObject(req, objectID, req.ResourceName)
 	if err != nil {
 		return nil, errl.Errorf("failed to get object %s from local service: %w", objectID, err)
 	}
@@ -425,7 +424,7 @@ func (svc *Service) getLocalOrRemoteObject(ctx context.Context, req *Request) (*
 	}
 
 	// Store the object locally and return it to caller
-	if err := svc.CreateObject(remoteObj); err != nil {
+	if err := svc.storage.CreateObject(req, remoteObj); err != nil {
 		slog.Error("failed to cache object", slog.Any("error", err))
 		// Return the stale object or nil
 		return remoteObj, nil

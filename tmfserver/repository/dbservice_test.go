@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hesusruiz/tmforum/types"
 )
 
 func argsToStrings(args []any) []string {
@@ -248,7 +250,7 @@ func newTestDBService(t *testing.T) (*DBService, func()) {
 	t.Helper()
 	dir := t.TempDir()
 	dbPath := filepath.Join(dir, "test.db")
-	repo, err := NewDBService(dbPath)
+	repo, err := NewDBService(dbPath, "test-server-operator")
 	if err != nil {
 		t.Fatalf("newTestDBService: failed to create DBService: %v", err)
 	}
@@ -285,7 +287,7 @@ func TestUpdateObject(t *testing.T) {
 		initialJSON,
 	)
 
-	if err := repo.CreateObject(created); err != nil {
+	if err := repo.CreateObject(nil, created); err != nil {
 		t.Fatalf("TestUpdateObject: CreateObject failed: %v", err)
 	}
 
@@ -311,12 +313,12 @@ func TestUpdateObject(t *testing.T) {
 		Content:    updatedJSON,
 	}
 
-	if err := repo.UpdateObject(updated); err != nil {
+	if err := repo.UpdateObject(nil, updated); err != nil {
 		t.Fatalf("TestUpdateObject: UpdateObject failed: %v", err)
 	}
 
 	// --- Read back and verify the content was persisted ---
-	fetched, err := repo.GetObject(created.ID, created.Type)
+	fetched, err := repo.GetObject(nil, created.ID, created.Type)
 	if err != nil {
 		t.Fatalf("TestUpdateObject: GetObject failed: %v", err)
 	}
@@ -351,7 +353,7 @@ func TestUpdateObject_NotFound(t *testing.T) {
 		Content: []byte(`{"id":"urn:uuid:does-not-exist"}`),
 	}
 
-	err := repo.UpdateObject(phantom)
+	err := repo.UpdateObject(nil, phantom)
 	if err == nil {
 		t.Fatal("TestUpdateObject_NotFound: expected an error for non-existent object, got nil")
 	}
@@ -375,7 +377,7 @@ func TestUpdateObject_VersionBump(t *testing.T) {
 		"2026-01-01T00:00:00Z",
 		[]byte(`{"id":"urn:uuid:version-bump-test","name":"v1"}`),
 	)
-	if err := repo.CreateObject(initial); err != nil {
+	if err := repo.CreateObject(nil, initial); err != nil {
 		t.Fatalf("TestUpdateObject_VersionBump: CreateObject failed: %v", err)
 	}
 
@@ -388,12 +390,12 @@ func TestUpdateObject_VersionBump(t *testing.T) {
 		LastUpdate: "2026-06-01T00:00:00Z",
 		Content:    []byte(`{"id":"urn:uuid:version-bump-test","name":"v2"}`),
 	}
-	if err := repo.UpdateObject(bumped); err != nil {
+	if err := repo.UpdateObject(nil, bumped); err != nil {
 		t.Fatalf("TestUpdateObject_VersionBump: UpdateObject to 2.0 failed: %v", err)
 	}
 
 	// The stored row should now be at version 2.0
-	fetched, err := repo.GetObject(initial.ID, initial.Type)
+	fetched, err := repo.GetObject(nil, initial.ID, initial.Type)
 	if err != nil {
 		t.Fatalf("TestUpdateObject_VersionBump: GetObject failed: %v", err)
 	}
@@ -416,11 +418,11 @@ func TestUpsertObject_Insert(t *testing.T) {
 		[]byte(`{"id":"urn:uuid:upsert-insert","name":"initial"}`),
 	)
 
-	if err := repo.UpsertObject(obj); err != nil {
+	if err := repo.UpsertObject(nil, obj); err != nil {
 		t.Fatalf("TestUpsertObject_Insert: expected no error, got %v", err)
 	}
 
-	fetched, err := repo.GetObject(obj.ID, obj.Type)
+	fetched, err := repo.GetObject(nil, obj.ID, obj.Type)
 	if err != nil {
 		t.Fatalf("TestUpsertObject_Insert: GetObject failed: %v", err)
 	}
@@ -446,18 +448,18 @@ func TestUpsertObject_UpdateSameVersion(t *testing.T) {
 		"2026-01-01T00:00:00Z",
 		[]byte(`{"id":"urn:uuid:upsert-update-same","name":"initial"}`),
 	)
-	if err := repo.UpsertObject(obj); err != nil {
+	if err := repo.UpsertObject(nil, obj); err != nil {
 		t.Fatalf("TestUpsertObject_UpdateSameVersion: initial upsert failed: %v", err)
 	}
 
 	// Upsert again with same version but different content
 	obj.Content = []byte(`{"id":"urn:uuid:upsert-update-same","name":"updated"}`)
 	obj.LastUpdate = "2026-06-01T00:00:00Z"
-	if err := repo.UpsertObject(obj); err != nil {
+	if err := repo.UpsertObject(nil, obj); err != nil {
 		t.Fatalf("TestUpsertObject_UpdateSameVersion: second upsert failed: %v", err)
 	}
 
-	fetched, _ := repo.GetObject(obj.ID, obj.Type)
+	fetched, _ := repo.GetObject(nil, obj.ID, obj.Type)
 	var m map[string]any
 	if err := json.Unmarshal(fetched.Content, &m); err != nil {
 		t.Fatalf("TestUpsertObject_UpdateSameVersion: unmarshal failed: %v", err)
@@ -481,7 +483,7 @@ func TestUpsertObject_VersionBump(t *testing.T) {
 		"2026-01-01T00:00:00Z",
 		[]byte(`{"id":"urn:uuid:upsert-bump","name":"v1"}`),
 	)
-	if err := repo.UpsertObject(obj); err != nil {
+	if err := repo.UpsertObject(nil, obj); err != nil {
 		t.Fatalf("TestUpsertObject_VersionBump: initial upsert failed: %v", err)
 	}
 
@@ -493,12 +495,12 @@ func TestUpsertObject_VersionBump(t *testing.T) {
 		LastUpdate: "2026-06-01T00:00:00Z",
 		Content:    []byte(`{"id":"urn:uuid:upsert-bump","name":"v2"}`),
 	}
-	if err := repo.UpsertObject(bumped); err != nil {
+	if err := repo.UpsertObject(nil, bumped); err != nil {
 		t.Fatalf("TestUpsertObject_VersionBump: bump upsert failed: %v", err)
 	}
 
 	// GetObject must return the new maximum version.
-	fetched, _ := repo.GetObject(obj.ID, obj.Type)
+	fetched, _ := repo.GetObject(nil, obj.ID, obj.Type)
 	if fetched.Version != "2.0" {
 		t.Errorf("TestUpsertObject_VersionBump: expected version 2.0, got %q", fetched.Version)
 	}
@@ -516,3 +518,195 @@ func TestUpsertObject_VersionBump(t *testing.T) {
 		t.Errorf("TestUpsertObject_VersionBump: expected 1 row, got %d", rowCount)
 	}
 }
+
+func TestOperationLog(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	reqCreate := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-create-123",
+			AccessToken:            "token-create-xyz",
+		},
+	}
+
+	obj := NewTMFRecord(
+		"urn:uuid:oplog-test-1",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-1","name":"initial"}`),
+	)
+
+	// 1. CREATE
+	if err := repo.CreateObject(reqCreate, obj); err != nil {
+		t.Fatalf("CreateObject failed: %v", err)
+	}
+
+	logs, err := repo.GetOperationLogs(0, 100)
+	if err != nil {
+		t.Fatalf("GetOperationLogs failed: %v", err)
+	}
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 log, got %d", len(logs))
+	}
+	if logs[0].Action != "CREATE" {
+		t.Errorf("expected CREATE, got %s", logs[0].Action)
+	}
+	if logs[0].CallerID != "org-create-123" {
+		t.Errorf("expected org-create-123, got %s", logs[0].CallerID)
+	}
+	if logs[0].ServerID != "test-server-operator" {
+		t.Errorf("expected test-server-operator, got %s", logs[0].ServerID)
+	}
+	if logs[0].AccessToken != "token-create-xyz" {
+		t.Errorf("expected token-create-xyz, got %s", logs[0].AccessToken)
+	}
+	if logs[0].OldContent != nil {
+		t.Errorf("expected nil OldContent, got %s", string(logs[0].OldContent))
+	}
+	if string(logs[0].NewContent) != `{"id":"urn:uuid:oplog-test-1","name":"initial"}` {
+		t.Errorf("unexpected NewContent: %s", string(logs[0].NewContent))
+	}
+
+	// 2. UPDATE
+	reqUpdate := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-update-456",
+			AccessToken:            "token-update-abc",
+		},
+	}
+	updatedObj := NewTMFRecord(
+		"urn:uuid:oplog-test-1",
+		"ProductOffering",
+		"1.1",
+		"v4",
+		"2026-01-02T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-1","name":"updated"}`),
+	)
+	if err := repo.UpdateObject(reqUpdate, updatedObj); err != nil {
+		t.Fatalf("UpdateObject failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(0, 100)
+	if err != nil {
+		t.Fatalf("GetOperationLogs failed: %v", err)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 logs, got %d", len(logs))
+	}
+	if logs[1].Action != "UPDATE" {
+		t.Errorf("expected UPDATE, got %s", logs[1].Action)
+	}
+	if logs[1].CallerID != "org-update-456" {
+		t.Errorf("expected org-update-456, got %s", logs[1].CallerID)
+	}
+	if logs[1].OldVersion != "1.0" || logs[1].NewVersion != "1.1" {
+		t.Errorf("version mismatch: old=%s, new=%s", logs[1].OldVersion, logs[1].NewVersion)
+	}
+
+	// 3. DELETE
+	reqDelete := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-del-789",
+			AccessToken:            "token-del-def",
+		},
+	}
+	if err := repo.DeleteObject(reqDelete, obj.ID, obj.Type); err != nil {
+		t.Fatalf("DeleteObject failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(0, 100)
+	if err != nil {
+		t.Fatalf("GetOperationLogs failed: %v", err)
+	}
+	if len(logs) != 3 {
+		t.Fatalf("expected 3 logs, got %d", len(logs))
+	}
+	if logs[2].Action != "DELETE" {
+		t.Errorf("expected DELETE, got %s", logs[2].Action)
+	}
+	if logs[2].CallerID != "org-del-789" {
+		t.Errorf("expected org-del-789, got %s", logs[2].CallerID)
+	}
+	if logs[2].NewContent != nil {
+		t.Errorf("expected nil NewContent on DELETE, got %s", string(logs[2].NewContent))
+	}
+	if string(logs[2].OldContent) != `{"id":"urn:uuid:oplog-test-1","name":"updated"}` {
+		t.Errorf("unexpected OldContent on DELETE: %s", string(logs[2].OldContent))
+	}
+
+	// Verify pagination by seq
+	pagedLogs, err := repo.GetOperationLogs(logs[0].Seq, 1)
+	if err != nil {
+		t.Fatalf("GetOperationLogs pagination failed: %v", err)
+	}
+	if len(pagedLogs) != 1 || pagedLogs[0].Seq != logs[1].Seq {
+		t.Errorf("pagination failed: expected seq %d, got %v", logs[1].Seq, pagedLogs)
+	}
+
+	// 4. UPSERT - Insert path
+	reqUpsert := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-upsert-new",
+			AccessToken:            "token-upsert-1",
+		},
+	}
+	upsertObj := NewTMFRecord(
+		"urn:uuid:oplog-test-upsert",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v1"}`),
+	)
+	if err := repo.UpsertObject(reqUpsert, upsertObj); err != nil {
+		t.Fatalf("UpsertObject (insert) failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(logs[2].Seq, 10)
+	if err != nil || len(logs) != 1 {
+		t.Fatalf("expected 1 log for upsert insert, got %d (err: %v)", len(logs), err)
+	}
+	if logs[0].Action != "CREATE" {
+		t.Errorf("expected CREATE for upsert-insert, got %s", logs[0].Action)
+	}
+	if logs[0].OldContent != nil {
+		t.Errorf("expected nil OldContent for upsert-insert, got %s", string(logs[0].OldContent))
+	}
+
+	// 5. UPSERT - Update path
+	reqUpsertUpdate := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-upsert-update",
+			AccessToken:            "token-upsert-2",
+		},
+	}
+	upsertObj2 := NewTMFRecord(
+		"urn:uuid:oplog-test-upsert",
+		"ProductOffering",
+		"2.0",
+		"v4",
+		"2026-01-02T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v2"}`),
+	)
+	if err := repo.UpsertObject(reqUpsertUpdate, upsertObj2); err != nil {
+		t.Fatalf("UpsertObject (update) failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(logs[0].Seq, 10)
+	if err != nil || len(logs) != 1 {
+		t.Fatalf("expected 1 log for upsert update, got %d (err: %v)", len(logs), err)
+	}
+	if logs[0].Action != "UPDATE" {
+		t.Errorf("expected UPDATE for upsert-update, got %s", logs[0].Action)
+	}
+	if string(logs[0].OldContent) != `{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v1"}` {
+		t.Errorf("unexpected OldContent for upsert-update: %s", string(logs[0].OldContent))
+	}
+	if string(logs[0].NewContent) != `{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v2"}` {
+		t.Errorf("unexpected NewContent for upsert-update: %s", string(logs[0].NewContent))
+	}
+}
+

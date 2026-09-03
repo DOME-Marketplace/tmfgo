@@ -378,7 +378,7 @@ func newISBEDEVTestService(t *testing.T) *Service {
 		t.Fatalf("failed to load configuration: %v", err)
 	}
 
-	dbLayer, err := repository.NewDBService(":memory:")
+	dbLayer, err := repository.NewDBService(":memory:", configuration.ServerOperatorOrganizationIdentifier)
 	if err != nil {
 		t.Fatalf("create test db: %v", err)
 	}
@@ -404,7 +404,7 @@ func newISBEDEVTestService(t *testing.T) *Service {
 func newLocalTestService(t *testing.T) *Service {
 	t.Helper()
 
-	dbLayer, err := repository.NewDBService(":memory:")
+	dbLayer, err := repository.NewDBService(":memory:", testServerOperator)
 	if err != nil {
 		t.Fatalf("create test db: %v", err)
 	}
@@ -592,7 +592,7 @@ func TestServiceWithMockRuleEngine(t *testing.T) {
 		t.Fatalf("create test config: %v", err)
 	}
 
-	dbLayer, err := repository.NewDBService(":memory:")
+	dbLayer, err := repository.NewDBService(":memory:", configuration.ServerOperatorOrganizationIdentifier)
 	if err != nil {
 		t.Fatalf("create test db: %v", err)
 	}

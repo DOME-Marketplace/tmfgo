@@ -94,7 +94,7 @@ func (svc *Service) DeleteTMFObject(ctx context.Context, req *Request) *Response
 	}
 
 	// Delete the object in the local database
-	if err := svc.DeleteObject(req.ID, req.ResourceName); err != nil {
+	if err := svc.storage.DeleteObject(req, req.ID, req.ResourceName); err != nil {
 		return ErrorResponsef(http.StatusInternalServerError, "failed to delete object %s from service: %w", req.ID, err)
 	}
 

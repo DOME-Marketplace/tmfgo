@@ -134,7 +134,7 @@ func runNormalProcess(configuration *config.Config) error {
 	defer upg.Stop()
 
 	// Connect to the database and create tables if they do not exist
-	dbService, err := repository.NewDBService(configuration.Dbname)
+	dbService, err := repository.NewDBService(configuration.Dbname, configuration.ServerOperatorOrganizationIdentifier)
 	if err != nil {
 		return errl.Errorf("failed to connect to database: %w", err)
 	}
