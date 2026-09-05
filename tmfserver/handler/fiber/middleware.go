@@ -2,6 +2,7 @@ package fiber
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"log/slog"
 	"sync/atomic"
@@ -32,6 +33,21 @@ func RequestID(c *fiber.Ctx) error {
 	c.Locals(ContextKeyRequestID, rid)
 
 	// Next handler will take care of the request
+	return c.Next()
+}
+
+// Embed the favicon.ico file
+
+//go:embed favicon.ico
+var favicon []byte
+
+func Favicon(c *fiber.Ctx) error {
+	if c.Path() == "/favicon.ico" {
+		c.Set("Content-Type", "image/x-icon")
+		// Set no-cache headers to prevent caching issues
+		c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		return c.Send(favicon)
+	}
 	return c.Next()
 }
 

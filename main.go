@@ -185,6 +185,9 @@ func runNormalProcess(configuration *config.Config) error {
 		EnableStackTrace: configuration.Debug,
 	}))
 
+	// Favicon middleware - serve favicon.ico
+	webServer.Use(fiberhandler.Favicon)
+
 	// Request ID middleware - for tracing requests
 	webServer.Use(fiberhandler.RequestID)
 
