@@ -123,7 +123,7 @@ type TMFOpLogRecord struct {
 type DBService struct {
 	db                 *sql.DB
 	server_operator_id string
-	stopCheckpoint     chan struct{}
+	stopMaintenance    chan struct{}
 	closeOnce          sync.Once
 }
 
@@ -178,24 +178,8 @@ func NewDBService(dbName string, serverOperatorID string) (*DBService, error) {
 	repo := &DBService{
 		db:                 db,
 		server_operator_id: serverOperatorID,
-		stopCheckpoint:     make(chan struct{}),
+		stopMaintenance:    make(chan struct{}),
 	}
-
-	// Start a background timer to perform a passive WAL checkpoint every minute
-	go func() {
-		ticker := time.NewTicker(1 * time.Minute)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-repo.stopCheckpoint:
-				return
-			case <-ticker.C:
-				if err := walCheckpointPassive(repo); err != nil {
-					slog.Debug("passive WAL checkpoint failed", slog.Any("error", err))
-				}
-			}
-		}
-	}()
 
 	return repo, nil
 }
@@ -257,11 +241,11 @@ func (e *ErrObjectNotFound) Is(target error) bool {
 	}
 }
 
-// Close closes the database connection.
+// Close closes the database connection and signals to the maintenance task to finish
 func (repo *DBService) Close() error {
 	repo.closeOnce.Do(func() {
-		if repo.stopCheckpoint != nil {
-			close(repo.stopCheckpoint)
+		if repo.stopMaintenance != nil {
+			close(repo.stopMaintenance)
 		}
 	})
 	return repo.db.Close()
