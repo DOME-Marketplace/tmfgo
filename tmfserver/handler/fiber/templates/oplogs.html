@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+{{ template "partials/head" . }}
+
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div class="app-wrapper">
+
+        {{ template "partials/app-header" . }}
+
+        {{ template "partials/app-sidebar" . }}
+
+        <main class="app-main">
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+
+                            <h1 class="mb-0 fs-3">Operation logs</h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb float-sm-end">
+                                    <li class="breadcrumb-item"><a href="/admin">Home</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">OpLogs</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-content">
+                <div class="container-fluid">
+
+                    {{ if .Error }}
+                    <div class="alert alert-danger" role="alert">{{ .Error }}</div>
+                    {{ else }}
+                    <div id="oplogstable"></div>
+                    {{ end }}
+
+                </div>
+            </div>
+        </main>
+
+        <script>
+            var table = new Tabulator("#oplogstable", {
+                layout:"fitDataStretch",
+                sortMode:"remote",
+                pagination:true,
+                paginationMode:"remote",
+                paginationSize:40,
+                paginationSizeSelector:true,
+                ajaxURL:"/admin/api/oplogs",
+                columns: [
+                    { title: "Seq", field: "seq" },
+                    { title: "Created At", field: "created_at"},
+                    { title: "Action", field: "action" },
+                    { title: "Caller ID", field: "caller_id" },
+                    { title: "Server ID", field: "server_id" },
+                    { title: "Object ID", field: "object_id" }
+                ],
+            });
+        </script>
+
+        {{ template "partials/app-footer" . }}
+
+    </div>
+    <!--end::app-wrapper-->
+
+    {{ template "partials/foot" . }}
+</body>
+
+</html>

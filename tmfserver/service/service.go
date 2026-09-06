@@ -32,7 +32,6 @@ const (
 
 var HttpActions = types.HttpActions
 
-
 // Response represents a generic HTTP response.
 type Response struct {
 	StatusCode int
@@ -169,6 +168,10 @@ func NewTMFService(cnf *config.Config, storage TMFStorer, ruleEngine Authorizer)
 	svc.SetLogLevel(3)
 
 	return svc, nil
+}
+
+func (s *Service) Storage() TMFStorer {
+	return s.storage
 }
 
 func (s *Service) AdminToken() string {

@@ -20,6 +20,7 @@ import (
 	"github.com/hesusruiz/tmforum/config"
 	"github.com/hesusruiz/tmforum/internal/html"
 	"github.com/hesusruiz/tmforum/internal/sqlogger"
+	"github.com/hesusruiz/tmforum/tmfserver/repository"
 	"github.com/hesusruiz/tmforum/tmfserver/service"
 )
 
@@ -67,6 +68,9 @@ func (h *AdminHandler) registerRoutes(app *fiber.App) {
 
 	admin.Get("/page/upstream", h.Upstream)
 	admin.Post("/page/upstream", h.Upstream)
+
+	admin.Get("/page/oplogs", h.OpLogs)
+	admin.Get("/api/oplogs", h.APIOpLogs)
 
 	admin.Get("/:resourceName", h.ListObjects)
 	admin.Get("/:resourceName/:id", h.ViewObject)
@@ -156,6 +160,90 @@ func (h *AdminHandler) Settings(c *fiber.Ctx) error {
 		return c.Redirect("/admin")
 	}
 
+}
+
+func (h *AdminHandler) OpLogs(c *fiber.Ctx) error {
+
+	pageName := "oplogs"
+
+	pageData := map[string]any{
+		pageName:  "active",
+		"Service": h.service,
+	}
+
+	switch c.Method() {
+	case http.MethodGet:
+
+		storage := h.service.Storage()
+
+		opLogs, err := storage.GetOperationLogs(0, 100000)
+		if err != nil {
+			pageData["Error"] = "Error getting operation logs: " + err.Error()
+			return h.render(c, pageName, pageData)
+		}
+
+		slog.Info("Operation logs retrieved", slog.Int("count", len(opLogs)))
+
+		pageData["OpLogs"] = opLogs
+
+		return h.render(c, pageName, pageData)
+
+	default:
+		return c.Redirect("/admin")
+
+	}
+
+}
+
+// APIOpLogs returns the operation logs in JSON format for the Tabulator table
+// The GET request has the following query paremeters:
+// - page: the page number being requested
+// - size: the number of rows to a page. If not specified, we use 3.
+// - sorters: the first current sorters(if any)
+// - filter: an array of the current filters (if any)
+//
+// The response is a JSON object with the following fields:
+// - last_page: the total number of available pages
+// - data: an array of operation logs
+func (h *AdminHandler) APIOpLogs(c *fiber.Ctx) (err error) {
+
+	type APIResponse struct {
+		LastPage int                             `json:"last_page"`
+		Data     []repository.SummaryOpLogRecord `json:"data"`
+	}
+
+	apiResponse := &APIResponse{}
+
+	// Get the page number requestd
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	// Get the page size requestd
+	size, err := strconv.Atoi(c.Query("size"))
+	if err != nil || size < 1 {
+		size = 3
+	}
+
+	storage := h.service.Storage()
+
+	totalRecords, logs, err := storage.GetSummaryOperationLogs(page, size)
+	if err != nil {
+		slog.Error("Error getting operation logs", slog.String("error", err.Error()))
+		return err
+	}
+
+	apiResponse.Data = logs
+	if size > 0 {
+		apiResponse.LastPage = max((totalRecords+size-1)/size, 1)
+	} else {
+		apiResponse.LastPage = 1
+	}
+
+	slog.Info("Operation logs retrieved", slog.Int("count", len(apiResponse.Data)), slog.Int("total", totalRecords))
+
+	return c.JSON(apiResponse)
 }
 
 func (h *AdminHandler) Upstream(c *fiber.Ctx) error {

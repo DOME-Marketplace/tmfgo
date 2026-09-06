@@ -710,3 +710,107 @@ func TestOperationLog(t *testing.T) {
 	}
 }
 
+func TestGetSummaryOperationLogs(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	// 1. On empty database
+	total, logs, err := repo.GetSummaryOperationLogs(1, 10)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs failed on empty db: %v", err)
+	}
+	if total != 0 {
+		t.Errorf("expected 0 total records, got %d", total)
+	}
+	if len(logs) != 0 {
+		t.Errorf("expected 0 logs, got %d", len(logs))
+	}
+
+	// 2. Insert 5 records
+	req := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-summary-test",
+			AccessToken:            "token-summary",
+		},
+	}
+	for i := 1; i <= 5; i++ {
+		obj := NewTMFRecord(
+			"urn:uuid:summary-test-"+string(rune('0'+i)),
+			"ProductOffering",
+			"1.0",
+			"v4",
+			"2026-01-01T00:00:00Z",
+			[]byte(`{"id":"urn:uuid:summary-test"}`),
+		)
+		if err := repo.CreateObject(req, obj); err != nil {
+			t.Fatalf("CreateObject failed: %v", err)
+		}
+	}
+
+	// Page 1, size 2 -> records 1, 2
+	total, logs, err = repo.GetSummaryOperationLogs(1, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 1 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 logs for page 1, got %d", len(logs))
+	}
+	if logs[0].ObjectID != "urn:uuid:summary-test-1" {
+		t.Errorf("expected summary-test-1, got %s", logs[0].ObjectID)
+	}
+	if logs[0].Action != "CREATE" || logs[0].CallerID != "org-summary-test" {
+		t.Errorf("unexpected log content: %+v", logs[0])
+	}
+	if logs[1].ObjectID != "urn:uuid:summary-test-2" {
+		t.Errorf("expected summary-test-2, got %s", logs[1].ObjectID)
+	}
+
+	// Page 2, size 2 -> records 3, 4
+	total, logs, err = repo.GetSummaryOperationLogs(2, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 2 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 logs for page 2, got %d", len(logs))
+	}
+	if logs[0].ObjectID != "urn:uuid:summary-test-3" {
+		t.Errorf("expected summary-test-3, got %s", logs[0].ObjectID)
+	}
+	if logs[1].ObjectID != "urn:uuid:summary-test-4" {
+		t.Errorf("expected summary-test-4, got %s", logs[1].ObjectID)
+	}
+
+	// Page 3, size 2 -> record 5
+	total, logs, err = repo.GetSummaryOperationLogs(3, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 3 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 log for page 3, got %d", len(logs))
+	}
+	if logs[0].ObjectID != "urn:uuid:summary-test-5" {
+		t.Errorf("expected summary-test-5, got %s", logs[0].ObjectID)
+	}
+
+	// Page 4, size 2 -> 0 records
+	total, logs, err = repo.GetSummaryOperationLogs(4, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 4 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 0 {
+		t.Errorf("expected 0 logs for page 4, got %d", len(logs))
+	}
+}
+

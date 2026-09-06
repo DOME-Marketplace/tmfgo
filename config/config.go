@@ -230,7 +230,7 @@ func LoadConfig(
 		if environment == LOCAL {
 			adminToken = "eyJhdWQiOiJodHRwczovL2NhdGFsb2cuaX"
 		} else {
-			return nil, errl.Errorf("ISBETMF_ADMIN_TOKEN not set for environment %s", environment)
+			return nil, errl.Errorf("TMF_ADMIN_TOKEN not set for environment %s", environment)
 		}
 	}
 
