@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -71,6 +72,7 @@ func (h *AdminHandler) registerRoutes(app *fiber.App) {
 
 	admin.Get("/page/oplogs", h.OpLogs)
 	admin.Get("/api/oplogs", h.APIOpLogs)
+	admin.Get("/page/operation/:seq", h.ShowOperation)
 
 	admin.Get("/:resourceName", h.ListObjects)
 	admin.Get("/:resourceName/:id", h.ViewObject)
@@ -159,6 +161,75 @@ func (h *AdminHandler) Settings(c *fiber.Ctx) error {
 	default:
 		return c.Redirect("/admin")
 	}
+
+}
+
+func (h *AdminHandler) ShowOperation(c *fiber.Ctx) error {
+
+	pageName := "operation"
+
+	pageData := map[string]any{
+		pageName:  "active",
+		"Service": h.service,
+	}
+
+	// Get the operation sequence from the query parameters
+	seqStr := c.Params("seq")
+	if seqStr == "" {
+		pageData["Error"] = "No operation sequence provided"
+		return h.render(c, pageName, pageData)
+	}
+
+	seq, err := strconv.ParseInt(seqStr, 10, 64)
+	if err != nil {
+		pageData["Error"] = "Invalid operation sequence"
+		return h.render(c, pageName, pageData)
+	}
+
+	opLog, err := h.service.Storage().GetOperation(seq)
+	if err != nil {
+		pageData["Error"] = "Error getting operation log: " + err.Error()
+		return h.render(c, pageName, pageData)
+	}
+
+	slog.Info("Operation log retrieved", slog.Int("seq", int(opLog.Seq)))
+
+	pageData["OpLog"] = opLog
+
+	// We must unmarshall and marsall with indentation
+	var aux any
+
+	if opLog.OldContent != nil {
+		err := json.Unmarshal(opLog.OldContent, &aux)
+		if err != nil {
+			pageData["Error"] = "Error unmarshalling old content: " + err.Error()
+			return h.render(c, pageName, pageData)
+		}
+		jsonOldContent, err := json.MarshalIndent(aux, "", "  ")
+		if err != nil {
+			pageData["Error"] = "Error marshalling old content: " + err.Error()
+			return h.render(c, pageName, pageData)
+		}
+		pageData["OldContent"] = template.HTML(jsonOldContent)
+		pageData["JSOldContent"] = template.JS(strconv.Quote(string(jsonOldContent)))
+	}
+
+	if opLog.NewContent != nil {
+		err := json.Unmarshal(opLog.NewContent, &aux)
+		if err != nil {
+			pageData["Error"] = "Error unmarshalling new content: " + err.Error()
+			return h.render(c, pageName, pageData)
+		}
+		jsonNewContent, err := json.MarshalIndent(aux, "", "  ")
+		if err != nil {
+			pageData["Error"] = "Error marshalling new content: " + err.Error()
+			return h.render(c, pageName, pageData)
+		}
+		pageData["NewContent"] = template.HTML(jsonNewContent)
+		pageData["JSNewContent"] = template.JS(strconv.Quote(string(jsonNewContent)))
+	}
+
+	return h.render(c, pageName, pageData)
 
 }
 

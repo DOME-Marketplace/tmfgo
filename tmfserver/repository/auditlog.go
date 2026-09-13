@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/hesusruiz/tmforum/internal/errl"
@@ -174,10 +175,12 @@ func (repo *DBService) GetOperationLogs(afterSeq int64, limit int) ([]TMFOpLogRe
 			return nil, errl.Errorf("failed to scan operation log row: %w", err)
 		}
 		if oldContentStr.Valid {
-			l.OldContent = []byte(oldContentStr.String)
+			l.OldContent = make([]byte, len(oldContentStr.String))
+			copy(l.OldContent, oldContentStr.String)
 		}
 		if newContentStr.Valid {
-			l.NewContent = []byte(newContentStr.String)
+			l.NewContent = make([]byte, len(newContentStr.String))
+			copy(l.NewContent, newContentStr.String)
 		}
 		logs = append(logs, l)
 	}
@@ -186,6 +189,43 @@ func (repo *DBService) GetOperationLogs(afterSeq int64, limit int) ([]TMFOpLogRe
 	}
 
 	return logs, nil
+}
+
+// GetOperation retrieves one TMFOpLogRecord by seq.
+// It returns a nil object and no error in the case it is not found.
+func (repo *DBService) GetOperation(seq int64) (*TMFOpLogRecord, error) {
+	var l TMFOpLogRecord
+	var oldContentStr, newContentStr sql.NullString
+	err := repo.db.QueryRow(`
+		SELECT seq, action, object_id, object_type,
+		       old_version, new_version, old_last_update, new_last_update,
+		       json(old_content), json(new_content),
+		       caller_id, server_id, access_token, created_at
+		FROM tmf_operation_log
+		WHERE seq = ?`,
+		seq,
+	).Scan(
+		&l.Seq, &l.Action, &l.ObjectID, &l.ObjectType,
+		&l.OldVersion, &l.NewVersion, &l.OldLastUpdate, &l.NewLastUpdate,
+		&oldContentStr, &newContentStr,
+		&l.CallerID, &l.ServerID, &l.AccessToken, &l.CreatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil // Operation not found
+	} else if err != nil {
+		return nil, errl.Errorf("failed to get operation seq=%d: %w", seq, err)
+	}
+	if oldContentStr.Valid {
+		l.OldContent = make([]byte, len(oldContentStr.String))
+		copy(l.OldContent, oldContentStr.String)
+	}
+	if newContentStr.Valid {
+		l.NewContent = make([]byte, len(newContentStr.String))
+		copy(l.NewContent, newContentStr.String)
+	}
+	fmt.Println("OldContent: ", string(l.OldContent))
+
+	return &l, nil
 }
 
 type SummaryOpLogRecord struct {
@@ -250,4 +290,3 @@ func (repo *DBService) GetSummaryOperationLogs(page, size int) (totalRecords int
 
 	return totalRecords, logs, nil
 }
-

@@ -44,21 +44,27 @@
 
         <script>
             var table = new Tabulator("#oplogstable", {
-                layout:"fitDataStretch",
-                sortMode:"remote",
-                pagination:true,
-                paginationMode:"remote",
-                paginationSize:40,
-                paginationSizeSelector:true,
-                ajaxURL:"/admin/api/oplogs",
+                layout: "fitDataStretch",
+                sortMode: "remote",
+                pagination: true,
+                paginationMode: "remote",
+                paginationSize: 40,
+                paginationSizeSelector: true,
+                ajaxURL: "/admin/api/oplogs",
                 columns: [
                     { title: "Seq", field: "seq" },
-                    { title: "Created At", field: "created_at"},
+                    { title: "Created At", field: "created_at" },
                     { title: "Action", field: "action" },
                     { title: "Caller ID", field: "caller_id" },
                     { title: "Server ID", field: "server_id" },
                     { title: "Object ID", field: "object_id" }
                 ],
+            });
+
+            table.on("rowClick", function (e, row) {
+                let seq = row.getData().seq;
+                console.log("Row " + seq);
+                location = "/admin/page/operation/" + seq;
             });
         </script>
 
