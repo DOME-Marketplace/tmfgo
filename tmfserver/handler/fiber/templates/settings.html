@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+
+{{ template "partials/head" . }}
+
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div class="app-wrapper">
+
+        {{ template "partials/app-header" . }}
+
+        {{ template "partials/app-sidebar" . }}
+
+        <main class="app-main">
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+
+                            <h1 class="mb-0 fs-3">Settings</h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb float-sm-end">
+                                    <li class="breadcrumb-item"><a href="/admin">Home</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Settings</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-content">
+                <div class="container-fluid">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Modify server settings</h3>
+                        </div>
+                        <div class="card-body">
+
+                            {{if .Success}}
+                            <div id="successmessage" class="alert alert-success" role="alert">
+                                Settings saved successfully
+                            </div>
+                            {{end}}
+
+                            {{if .Error}}
+                            <div id="errormessage" class="alert alert-danger" role="alert">
+                                Error: {{ .Error }}
+                            </div>
+                            {{end}}
+
+                            <form action="/admin/page/settings" method="post" class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="settings-loglevel"> Log Level </label>
+                                    <select name="logLevel" class="form-select" aria-label="Default select example">
+                                        <option {{ if eq .LogLevel.String "DEBUG" }} selected {{ end }} value="DEBUG">
+                                            DEBUG
+                                        </option>
+                                        <option {{ if eq .LogLevel.String "INFO" }} selected {{ end }} value="INFO">
+                                            INFO
+                                        </option>
+                                        <option {{ if eq .LogLevel.String "WARN" }} selected {{ end }} value="WARN">
+                                            WARN
+                                        </option>
+                                        <option {{ if eq .LogLevel.String "ERROR" }} selected {{ end }} value="ERROR">
+                                            ERROR
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        {{ template "partials/app-footer" . }}
+
+    </div>
+    <!--end::app-wrapper-->
+
+    {{ template "partials/foot" . }}
+</body>
+
+</html>

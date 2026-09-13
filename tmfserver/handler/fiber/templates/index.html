@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+
+{{ template "partials/head" . }}
+
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div class="app-wrapper">
+
+        {{ template "partials/app-header" . }}
+
+        {{ template "partials/app-sidebar" . }}
+
+        <main class="app-main">
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+
+                            <h1 class="mb-0 fs-3">General info</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-content">
+                <div class="container-fluid">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">This server: {{ .service.Environment }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="col-md-6">
+                                <label class="form-label" for="settings-vatid"> Organization Identifier </label>
+                                <input type="text" class="form-control" id="settings-vatid"
+                                    value="{{ .service.ServerOperatorOrganizationIdentifier }}" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="settings-name"> Name </label>
+                                <input type="text" class="form-control" id="settings-name"
+                                    value="{{ .service.ServerOperatorName }}" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="settings-tmfserver"> TMF Server </label>
+                                <input type="text" class="form-control" id="settings-tmfserver"
+                                    value="{{ .service.RemoteTMFServer }}" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </main>
+
+        {{ template "partials/app-footer" . }}
+
+    </div>
+    <!--end::app-wrapper-->
+
+    {{ template "partials/foot" . }}
+</body>
+
+</html>

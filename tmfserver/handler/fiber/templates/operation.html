@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+
+{{ template "partials/head" . }}
+
+<!-- // TMFOpLogRecord represents an entry in the tmf_operation_log table.
+type TMFOpLogRecord struct {
+	Seq           int64  `db:"seq"`
+	Action        string `db:"action"`
+	ObjectID      string `db:"object_id"`
+	ObjectType    string `db:"object_type"`
+	OldVersion    string `db:"old_version"`
+	NewVersion    string `db:"new_version"`
+	OldLastUpdate string `db:"old_last_update"`
+	NewLastUpdate string `db:"new_last_update"`
+	OldContent    []byte `db:"old_content"`
+	NewContent    []byte `db:"new_content"`
+	CallerID      string `db:"caller_id"`
+	ServerID      string `db:"server_id"`
+	AccessToken   string `db:"access_token"`
+	CreatedAt     int64  `db:"created_at"`
+} -->
+
+
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div class="app-wrapper">
+
+        {{ template "partials/app-header" . }}
+
+        {{ template "partials/app-sidebar" . }}
+
+        <main class="app-main">
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+
+                            <h1 class="mb-0 fs-3">{{ .OpLog.Seq }} - {{ .OpLog.Action }} {{ .OpLog.ObjectType }}</h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb float-sm-end">
+                                    <li class="breadcrumb-item"><a href="/admin">Home</a></li>
+                                    <li class="breadcrumb-item"><a href="/admin/page/oplogs">OpLogs</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Operation</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-content">
+                <div class="container-fluid">
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Who and When</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Caller: {{ .OpLog.CallerID }}</p>
+                            <p>Server: {{ .OpLog.ServerID }}</p>
+                            <p>Created At: {{ .OpLog.CreatedAt }}</p>
+
+                            <div class="accordion" id="accordionExample">
+                                <div class="accordion-item">
+
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                                            aria-expanded="false" aria-controls="collapseOne">
+                                            Access Token
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse"
+                                        data-bs-parent="#accordionExample">
+                                        <div class="accordion-body">
+                                            {{ .OpLog.AccessToken }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">What</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Action: {{ .OpLog.Action }}</p>
+                            <p>Object ID: {{ .OpLog.ObjectID }}</p>
+                            <p>Object Type: {{ .OpLog.ObjectType }}</p>
+                            <p>Old Version: {{ .OpLog.OldVersion }}</p>
+                            <p>New Version: {{ .OpLog.NewVersion }}</p>
+                            <p>Old Last Update: {{ .OpLog.OldLastUpdate }}</p>
+                            <p>New Last Update: {{ .OpLog.NewLastUpdate }}</p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Content</h3>
+                        </div>
+                        <div class="card-body">
+                            <pre><code class="language-json">{{ .OldContent }}</code></pre>
+                            <pre><code class="language-json">{{ .NewContent }}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Diff</h3>
+                        </div>
+                        <div class="card-body">
+
+                            <style>
+                                .diff-line {
+                                    font-family: monospace;
+                                    white-space: pre-wrap;
+                                    /* allow wrapping but preserve indentation */
+                                    word-break: break-word;
+                                    /* break long tokens like URLs or long strings */
+                                    padding: 2px 10px;
+                                    border-left: 4px solid transparent;
+                                }
+
+                                .diff-unchanged {
+                                    color: #666;
+                                    background: #fafafa;
+                                }
+
+                                .diff-removed {
+                                    background: #ffecec;
+                                    color: #b30000;
+                                    border-left-color: #b30000;
+                                }
+
+                                .diff-added {
+                                    background: #eaffea;
+                                    color: #006600;
+                                    border-left-color: #006600;
+                                }
+                            </style>
+
+
+                            <div id="diff"></div>
+
+                            <script>
+                                function textToLines(text) {
+                                    return text.split("\n");
+                                }
+
+                                function diffLines(aLines, bLines) {
+                                    const result = [];
+                                    const max = Math.max(aLines.length, bLines.length);
+
+                                    for (let i = 0; i < max; i++) {
+                                        const a = aLines[i] ?? "";
+                                        const b = bLines[i] ?? "";
+
+                                        if (a === b) {
+                                            result.push({ type: "unchanged", text: "  " + a });
+                                        } else {
+                                            // removed
+                                            result.push({
+                                                type: "removed",
+                                                text: "- " + (a !== "" ? a : "")
+                                            });
+
+                                            // added
+                                            result.push({
+                                                type: "added",
+                                                text: "+ " + (b !== "" ? b : "")
+                                            });
+                                        }
+                                    }
+
+                                    return result;
+                                }
+
+                                function renderDiff(diff) {
+                                    const container = document.getElementById("diff");
+                                    container.innerHTML = diff.map(line => {
+                                        return `<div class="diff-line diff-${line.type}">${line.text}</div>`;
+                                    }).join("");
+                                }
+
+                                // Your Go-provided JSON strings (already formatted)
+                                const obj1 = {{ .OldContent }};
+                                const obj2 = {{ .NewContent }};
+
+                                const diff = diffLines(textToLines(obj1), textToLines(obj2));
+                                renderDiff(diff);
+                            </script>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+
+        {{ template "partials/app-footer" . }}
+
+    </div>
+    <!--end::app-wrapper-->
+
+    {{ template "partials/foot" . }}
+</body>
+
+</html>

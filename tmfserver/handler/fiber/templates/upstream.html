@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+
+{{ template "partials/head" . }}
+
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div class="app-wrapper">
+
+        {{ template "partials/app-header" . }}
+
+        {{ template "partials/app-sidebar" . }}
+
+        <main class="app-main">
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+
+                            <h1 class="mb-0 fs-3">Upstream TMF configuration</h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb float-sm-end">
+                                    <li class="breadcrumb-item"><a href="/admin">Home</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Upstream</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-content">
+                <div class="container-fluid">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Current upstream TMF configuration</h3>
+                        </div>
+                        <div class="card-body">
+                            {{ if .Error }}
+                            <div class="alert alert-danger" role="alert">{{ .Error }}</div>
+                            {{ else }}
+
+                            {{ if .Success}}
+                            <div class="alert alert-success" role="alert">Upstream TMF configuration updated
+                                successfully</div>
+                            {{ end }}
+
+                            <pre><code class="language-yaml">{{ .UpstreamEntries }}</code></pre>
+                            {{ end }}
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Upload a new upstream TMF configuration</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="successmessage" class="alert alert-success" role="alert" style="display: none;">
+                                Upstream TMF configuration uploaded successfully
+                            </div>
+                            <div id="errormessage" class="alert alert-danger" role="alert" style="display: none;">
+                                Error: Unknown error.
+                            </div>
+
+                            <form action="/admin/page/upstream" class="dropzone" id="uploader"></form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <script>
+            Dropzone.autoDiscover = false
+            let myDropzone = new Dropzone("#uploader", {
+                paramName: "file",
+                maxFilesize: 5,
+                acceptedFiles: ".yaml,.yml",
+                autoProcessQueue: true,
+                parallelUploads: 100,
+                maxFiles: 1,
+                error: function (file, errorMessage) {
+                    console.log("Error uploading file:", errorMessage)
+                    document.getElementById("errormessage").innerText = "Error: " + errorMessage + ". The routing has not been modified."
+                    document.getElementById("errormessage").style.display = "block";
+                },
+                success: function (file) {
+                    console.log("File uploaded successfully, even if I dont know how:", file)
+                    // Redirect to the same page with success message
+                    window.location.href = "/admin/page/upstream?ok=1"
+                },
+                complete: function (file) {
+                    myDropzone.removeAllFiles();
+                    console.log("File uploaded, even if I dont know how:", file)
+                }
+            })
+        </script>
+
+        {{ template "partials/app-footer" . }}
+
+    </div>
+    <!--end::app-wrapper-->
+
+    {{ template "partials/foot" . }}
+</body>
+
+</html>

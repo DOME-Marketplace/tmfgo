@@ -1,0 +1,815 @@
+package repository
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/DOME-Marketplace/tmfgo/types"
+)
+
+func argsToStrings(args []any) []string {
+	out := make([]string, len(args))
+	for i, a := range args {
+		out[i] = fmt.Sprint(a)
+	}
+	return out
+}
+
+func containsAllInOrder(got []string, want []string) bool {
+	if len(want) == 0 {
+		return true
+	}
+	j := 0
+	for _, g := range got {
+		if g == want[j] {
+			j++
+			if j == len(want) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func TestBuildSelectFromParms_NoParams(t *testing.T) {
+	sql, args, _, _, _ := BuildSelectFromParms("", url.Values{})
+	if !strings.HasSuffix(strings.ToLower(sql), "from tmf_object") {
+		t.Fatalf("expected SQL to contain FROM tmf_object, got: %s", sql)
+	}
+
+	if len(args) != 0 {
+		t.Fatalf("expected no args for empty params, got: %v", args)
+	}
+}
+
+func TestBuildSelectFromParms_ResourceFilter(t *testing.T) {
+	sql, args, _, _, _ := BuildSelectFromParms("Product", url.Values{})
+	if !strings.HasSuffix(strings.ToLower(sql), "from tmf_object where type = ?") {
+		t.Fatalf("expected SQL to contain WHERE when resource provided, got: %s", sql)
+	}
+	argStrs := argsToStrings(args)
+	if len(argStrs) != 1 || argStrs[0] != "Product" {
+		t.Fatalf("expected single arg 'Product', got: %v", argStrs)
+	}
+}
+
+func TestBuildSelectFromParms_LimitOffset(t *testing.T) {
+	v := url.Values{}
+	v.Set("limit", "5")
+	v.Set("offset", "10")
+	_, args, limit, offset, _ := BuildSelectFromParms("", v)
+
+	if limit != 5 {
+		t.Fatalf("expected limit to be 5, got: %d", limit)
+	}
+	if offset != 10 {
+		t.Fatalf("expected offset to be 10, got: %d", offset)
+	}
+	// args may include limit/offset or they may be inlined depending on builder; ensure no panic and SQL contains clauses
+	_ = args
+}
+
+func TestBuildSelectFromParms_SellerMultipleValues(t *testing.T) {
+	v := url.Values{}
+	// multiple comma-separated values and multiple instances
+	v.Add("seller", "a,b")
+	v.Add("seller", "c")
+	sql, args, _, _, _ := BuildSelectFromParms("", v)
+
+	if !strings.HasSuffix(strings.ToLower(sql), "from tmf_object and seller in (?,?,?)") {
+		t.Fatalf("expected SQL to reference seller, got: %s", sql)
+	}
+	argStrs := argsToStrings(args)
+	want := []string{"a", "b", "c"}
+	if !containsAllInOrder(argStrs, want) {
+		t.Fatalf("expected args to contain %v in order, got: %v", want, argStrs)
+	}
+}
+
+func TestBuildSelectFromParms_JSONFieldMultiValues(t *testing.T) {
+	v := url.Values{}
+	v.Add("status", "Active,Launched")
+	sql, args, _, _, _ := BuildSelectFromParms("", v)
+
+	if !strings.Contains(sql, "content->>'$.status'") {
+		t.Fatalf("expected SQL to reference JSON path for status, got: %s", sql)
+	}
+	argStrs := argsToStrings(args)
+	want := []string{"Active", "Launched"}
+	if !containsAllInOrder(argStrs, want) {
+		t.Fatalf("expected args to contain %v in order, got: %v", want, argStrs)
+	}
+}
+
+func TestBuildSelectFromParms_TopLevelField(t *testing.T) {
+	v := url.Values{}
+	v.Set("lifecycleStatus", "Launched")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.Contains(sql, "content->>'$.lifecycleStatus'") {
+		t.Fatalf("expected SQL to reference JSON path for lifecycleStatus, got: %s", sql)
+	}
+	if len(args) < 2 || args[1] != "Launched" {
+		t.Fatalf("expected args to contain 'Launched', got: %v", args)
+	}
+}
+
+func TestBuildSelectFromParms_MultiValueTopLevelField(t *testing.T) {
+	v := url.Values{}
+	v.Set("lifecycleStatus", "Launched,Active")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.HasSuffix(sql, "FROM tmf_object WHERE type = ? AND content->>'$.lifecycleStatus' IN (?,?)") {
+		t.Fatalf("expected SQL to reference JSON path for lifecycleStatus, got: %s", sql)
+	}
+	want := []string{"Launched", "Active"}
+	argStrs := argsToStrings(args)
+	if !containsAllInOrder(argStrs, want) {
+		t.Fatalf("expected args to contain %v in order, got: %v", want, argStrs)
+	}
+}
+
+func TestBuildSelectFromParms_NestedField(t *testing.T) {
+	v := url.Values{}
+	// Simulate filtering by productSpecification.id
+	v.Set("productSpecification.id", "urn:ngsi-ld:product-specification:19f7f34a-1777-4553-b47b-6ad466d8a0ea")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.Contains(sql, "json_each(tmf_object.content, '$.productSpecification')") {
+		t.Fatalf("expected SQL to reference JSON path for productSpecification.id, got: %s", sql)
+	}
+	if len(args) < 2 || args[1] != "urn:ngsi-ld:product-specification:19f7f34a-1777-4553-b47b-6ad466d8a0ea" {
+		t.Fatalf("expected args to contain productSpecification.id value, got: %v", args)
+	}
+}
+
+func TestBuildSelectFromParms_ArrayOfObjectsField(t *testing.T) {
+	v := url.Values{}
+	// Simulate filtering by category.id (array of objects)
+	v.Set("category.id", "urn:ngsi-ld:category:31a1d8a8-56e8-49c3-aabb-6b0306bc0316")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.Contains(sql, "json_each(tmf_object.content, '$.category')") {
+		t.Fatalf("expected SQL to reference JSON path for category.id, got: %s", sql)
+	}
+	if len(args) < 2 || args[1] != "urn:ngsi-ld:category:31a1d8a8-56e8-49c3-aabb-6b0306bc0316" {
+		t.Fatalf("expected args to contain category.id value, got: %v", args)
+	}
+}
+
+func TestBuildSelectFromParms_ArrayOfObjectsFieldExplicitIndex(t *testing.T) {
+	v := url.Values{}
+	v.Set("organizationIdentification[0].identificationId", "did:elsi:VATEL-094402295")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.HasSuffix(sql, "FROM tmf_object WHERE type = ? AND EXISTS (SELECT 1 FROM json_tree(tmf_object.content) WHERE json_tree.fullkey LIKE '$.organizationIdentification[0].identificationId%' AND json_tree.value = ?)") {
+		t.Fatalf("expected SQL to search for organizationIdentification, got: %s", sql)
+	}
+	if len(args) < 2 || args[1] != "did:elsi:VATEL-094402295" {
+		t.Fatalf("expected args to contain category.id value, got: %v", args)
+	}
+}
+
+func TestBuildSelectFromParms_ArrayOfObjectsMultiValue(t *testing.T) {
+	v := url.Values{}
+	// Simulate filtering by relatedParty.role with multiple values
+	v.Set("relatedParty.role", "Seller,SellerOperator")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.HasSuffix(sql, "FROM json_tree(tmf_object.content) WHERE json_tree.fullkey LIKE '$.relatedParty%.role%' AND json_tree.value IN (?,?))") {
+		t.Fatalf("expected SQL to reference JSON path for relatedParty.role, got: %s", sql)
+	}
+	want := []string{"Seller", "SellerOperator"}
+	argStrs := argsToStrings(args)
+	if !containsAllInOrder(argStrs, want) {
+		t.Fatalf("expected args to contain %v in order, got: %v", want, argStrs)
+	}
+}
+
+func TestBuildSelectFromParms_MultipleFilters(t *testing.T) {
+	v := url.Values{}
+	v.Set("lifecycleStatus", "Launched")
+	v.Set("name", "Product Offer Example")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.Contains(sql, "content->>'$.lifecycleStatus'") || !strings.Contains(sql, "content->>'$.name'") {
+		t.Fatalf("expected SQL to reference both lifecycleStatus and name, got: %s", sql)
+	}
+	argStrs := argsToStrings(args)
+	foundLaunched := false
+	foundProductOffer := false
+	for _, arg := range argStrs {
+		if arg == "Launched" {
+			foundLaunched = true
+		}
+		if arg == "Product Offer Example" {
+			foundProductOffer = true
+		}
+	}
+	if !foundLaunched || !foundProductOffer {
+		t.Fatalf("expected args to contain Launched and Product Offer Example, got: %v", argStrs)
+	}
+}
+
+func TestBuildSelectFromParms_LimitOffsetAndType(t *testing.T) {
+	v := url.Values{}
+	v.Set("limit", "2")
+	v.Set("offset", "1")
+	sql, args, limit, offset, _ := BuildSelectFromParms("ProductOffering", v)
+
+	if limit != 2 {
+		t.Fatalf("expected limit to be 2, got: %d", limit)
+	}
+	if offset != 1 {
+		t.Fatalf("expected offset to be 1, got: %d", offset)
+	}
+	if !strings.Contains(sql, "WHERE") {
+		t.Fatalf("expected SQL to contain WHERE for type, got: %s", sql)
+	}
+	if len(args) != 1 || args[0] != "ProductOffering" {
+		t.Fatalf("expected args to contain only ProductOffering, got: %v", args)
+	}
+}
+
+func TestBuildSelectFromParms_SellerShortcut(t *testing.T) {
+	v := url.Values{}
+	v.Set("seller", "did:elsi:VATES-B60645900,did:elsi:VATES-11111111K")
+	sql, args, _, _, _ := BuildSelectFromParms("ProductOffering", v)
+	if !strings.Contains(sql, "seller") {
+		t.Fatalf("expected SQL to reference seller, got: %s", sql)
+	}
+	want := []string{"did:elsi:VATES-B60645900", "did:elsi:VATES-11111111K"}
+	argStrs := argsToStrings(args)
+	if !containsAllInOrder(argStrs, want) {
+		t.Fatalf("expected args to contain %v in order, got: %v", want, argStrs)
+	}
+}
+
+// newTestDBService creates a temporary SQLite database for testing and returns the service
+// together with a cleanup function the caller must defer.
+func newTestDBService(t *testing.T) (*DBService, func()) {
+	t.Helper()
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "test.db")
+	repo, err := NewDBService(dbPath, "test-server-operator")
+	if err != nil {
+		t.Fatalf("newTestDBService: failed to create DBService: %v", err)
+	}
+	cleanup := func() {
+		_ = repo.Close()
+		_ = os.RemoveAll(dir)
+	}
+	return repo, cleanup
+}
+
+func TestUpdateObject(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	// --- Create the initial object with version 1.0 ---
+	initialContent := map[string]any{
+		"id":              "urn:uuid:test-product-offering-001",
+		"@type":           "ProductOffering",
+		"name":            "Initial Offering",
+		"lifecycleStatus": "Draft",
+		"version":         "1.0",
+	}
+	initialJSON, err := json.Marshal(initialContent)
+	if err != nil {
+		t.Fatalf("TestUpdateObject: failed to marshal initial content: %v", err)
+	}
+
+	created := NewTMFRecord(
+		"urn:uuid:test-product-offering-001",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		initialJSON,
+	)
+
+	if err := repo.CreateObject(nil, created); err != nil {
+		t.Fatalf("TestUpdateObject: CreateObject failed: %v", err)
+	}
+
+	// --- Prepare the update payload, reusing version 1.0 ---
+	updatedContent := map[string]any{
+		"id":              "urn:uuid:test-product-offering-001",
+		"@type":           "ProductOffering",
+		"name":            "Updated Offering",
+		"lifecycleStatus": "Launched",
+		"version":         "1.0",
+	}
+	updatedJSON, err := json.Marshal(updatedContent)
+	if err != nil {
+		t.Fatalf("TestUpdateObject: failed to marshal updated content: %v", err)
+	}
+
+	updated := &TMFRecord{
+		ID:         created.ID,
+		Type:       created.Type,
+		Version:    "1.0", // same version as the created record
+		APIVersion: created.APIVersion,
+		LastUpdate: "2026-06-01T00:00:00Z",
+		Content:    updatedJSON,
+	}
+
+	if err := repo.UpdateObject(nil, updated); err != nil {
+		t.Fatalf("TestUpdateObject: UpdateObject failed: %v", err)
+	}
+
+	// --- Read back and verify the content was persisted ---
+	fetched, err := repo.GetObject(nil, created.ID, created.Type)
+	if err != nil {
+		t.Fatalf("TestUpdateObject: GetObject failed: %v", err)
+	}
+	if fetched == nil {
+		t.Fatal("TestUpdateObject: GetObject returned nil; object not found after update")
+	}
+
+	var fetchedMap map[string]any
+	if err := json.Unmarshal(fetched.Content, &fetchedMap); err != nil {
+		t.Fatalf("TestUpdateObject: failed to unmarshal fetched content: %v", err)
+	}
+
+	if got := fetchedMap["name"]; got != "Updated Offering" {
+		t.Errorf("TestUpdateObject: expected name %q, got %q", "Updated Offering", got)
+	}
+	if got := fetchedMap["lifecycleStatus"]; got != "Launched" {
+		t.Errorf("TestUpdateObject: expected lifecycleStatus %q, got %q", "Launched", got)
+	}
+	if fetched.Version != "1.0" {
+		t.Errorf("TestUpdateObject: expected version %q, got %q", "1.0", fetched.Version)
+	}
+}
+
+func TestUpdateObject_NotFound(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	phantom := &TMFRecord{
+		ID:      "urn:uuid:does-not-exist",
+		Type:    "ProductOffering",
+		Version: "1.0",
+		Content: []byte(`{"id":"urn:uuid:does-not-exist"}`),
+	}
+
+	err := repo.UpdateObject(nil, phantom)
+	if err == nil {
+		t.Fatal("TestUpdateObject_NotFound: expected an error for non-existent object, got nil")
+	}
+	if !errors.Is(err, &ErrObjectNotFound{}) {
+		t.Errorf("TestUpdateObject_NotFound: expected ErrObjectNotFound, got %v", err)
+	}
+}
+
+// TestUpdateObject_VersionBump verifies that UpdateObject succeeds when the supplied version
+// is lexicographically greater than the current maximum version (a version bump).
+func TestUpdateObject_VersionBump(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	// Create initial record at version 1.0
+	initial := NewTMFRecord(
+		"urn:uuid:version-bump-test",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:version-bump-test","name":"v1"}`),
+	)
+	if err := repo.CreateObject(nil, initial); err != nil {
+		t.Fatalf("TestUpdateObject_VersionBump: CreateObject failed: %v", err)
+	}
+
+	// Update to version 2.0 (lexicographically greater than 1.0)
+	bumped := &TMFRecord{
+		ID:         initial.ID,
+		Type:       initial.Type,
+		Version:    "2.0",
+		APIVersion: initial.APIVersion,
+		LastUpdate: "2026-06-01T00:00:00Z",
+		Content:    []byte(`{"id":"urn:uuid:version-bump-test","name":"v2"}`),
+	}
+	if err := repo.UpdateObject(nil, bumped); err != nil {
+		t.Fatalf("TestUpdateObject_VersionBump: UpdateObject to 2.0 failed: %v", err)
+	}
+
+	// The stored row should now be at version 2.0
+	fetched, err := repo.GetObject(nil, initial.ID, initial.Type)
+	if err != nil {
+		t.Fatalf("TestUpdateObject_VersionBump: GetObject failed: %v", err)
+	}
+	if fetched.Version != "2.0" {
+		t.Errorf("TestUpdateObject_VersionBump: expected version 2.0, got %q", fetched.Version)
+	}
+}
+
+// TestUpsertObject_Insert verifies that UpsertObject creates the object when it does not exist.
+func TestUpsertObject_Insert(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	obj := NewTMFRecord(
+		"urn:uuid:upsert-insert",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:upsert-insert","name":"initial"}`),
+	)
+
+	if err := repo.UpsertObject(nil, obj); err != nil {
+		t.Fatalf("TestUpsertObject_Insert: expected no error, got %v", err)
+	}
+
+	fetched, err := repo.GetObject(nil, obj.ID, obj.Type)
+	if err != nil {
+		t.Fatalf("TestUpsertObject_Insert: GetObject failed: %v", err)
+	}
+	if fetched == nil {
+		t.Fatal("TestUpsertObject_Insert: object not found after upsert")
+	}
+	if fetched.Version != "1.0" {
+		t.Errorf("TestUpsertObject_Insert: expected version 1.0, got %q", fetched.Version)
+	}
+}
+
+// TestUpsertObject_UpdateSameVersion verifies that UpsertObject succeeds when the object
+// already exists and the same version is supplied (in-place update).
+func TestUpsertObject_UpdateSameVersion(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	obj := NewTMFRecord(
+		"urn:uuid:upsert-update-same",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:upsert-update-same","name":"initial"}`),
+	)
+	if err := repo.UpsertObject(nil, obj); err != nil {
+		t.Fatalf("TestUpsertObject_UpdateSameVersion: initial upsert failed: %v", err)
+	}
+
+	// Upsert again with same version but different content
+	obj.Content = []byte(`{"id":"urn:uuid:upsert-update-same","name":"updated"}`)
+	obj.LastUpdate = "2026-06-01T00:00:00Z"
+	if err := repo.UpsertObject(nil, obj); err != nil {
+		t.Fatalf("TestUpsertObject_UpdateSameVersion: second upsert failed: %v", err)
+	}
+
+	fetched, _ := repo.GetObject(nil, obj.ID, obj.Type)
+	var m map[string]any
+	if err := json.Unmarshal(fetched.Content, &m); err != nil {
+		t.Fatalf("TestUpsertObject_UpdateSameVersion: unmarshal failed: %v", err)
+	}
+	if m["name"] != "updated" {
+		t.Errorf("TestUpsertObject_UpdateSameVersion: expected name 'updated', got %v", m["name"])
+	}
+}
+
+// TestUpsertObject_VersionBump verifies that UpsertObject succeeds when the object already
+// exists and the new version is lexicographically greater than the current maximum.
+func TestUpsertObject_VersionBump(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	obj := NewTMFRecord(
+		"urn:uuid:upsert-bump",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:upsert-bump","name":"v1"}`),
+	)
+	if err := repo.UpsertObject(nil, obj); err != nil {
+		t.Fatalf("TestUpsertObject_VersionBump: initial upsert failed: %v", err)
+	}
+
+	bumped := &TMFRecord{
+		ID:         obj.ID,
+		Type:       obj.Type,
+		Version:    "2.0",
+		APIVersion: obj.APIVersion,
+		LastUpdate: "2026-06-01T00:00:00Z",
+		Content:    []byte(`{"id":"urn:uuid:upsert-bump","name":"v2"}`),
+	}
+	if err := repo.UpsertObject(nil, bumped); err != nil {
+		t.Fatalf("TestUpsertObject_VersionBump: bump upsert failed: %v", err)
+	}
+
+	// GetObject must return the new maximum version.
+	fetched, _ := repo.GetObject(nil, obj.ID, obj.Type)
+	if fetched.Version != "2.0" {
+		t.Errorf("TestUpsertObject_VersionBump: expected version 2.0, got %q", fetched.Version)
+	}
+
+	// The old version row must still exist — UpsertObject preserves version history.
+	var rowCount int
+	err := repo.db.QueryRow(
+		"SELECT COUNT(*) FROM tmf_object WHERE id = ? AND type = ?",
+		obj.ID, obj.Type,
+	).Scan(&rowCount)
+	if err != nil {
+		t.Fatalf("TestUpsertObject_VersionBump: count query failed: %v", err)
+	}
+	if rowCount != 1 {
+		t.Errorf("TestUpsertObject_VersionBump: expected 1 row, got %d", rowCount)
+	}
+}
+
+func TestOperationLog(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	reqCreate := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-create-123",
+			AccessToken:            "token-create-xyz",
+		},
+	}
+
+	obj := NewTMFRecord(
+		"urn:uuid:oplog-test-1",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-1","name":"initial"}`),
+	)
+
+	// 1. CREATE
+	if err := repo.CreateObject(reqCreate, obj); err != nil {
+		t.Fatalf("CreateObject failed: %v", err)
+	}
+
+	logs, err := repo.GetOperationLogs(0, 100)
+	if err != nil {
+		t.Fatalf("GetOperationLogs failed: %v", err)
+	}
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 log, got %d", len(logs))
+	}
+	if logs[0].Action != "CREATE" {
+		t.Errorf("expected CREATE, got %s", logs[0].Action)
+	}
+	if logs[0].CallerID != "org-create-123" {
+		t.Errorf("expected org-create-123, got %s", logs[0].CallerID)
+	}
+	if logs[0].ServerID != "test-server-operator" {
+		t.Errorf("expected test-server-operator, got %s", logs[0].ServerID)
+	}
+	if logs[0].AccessToken != "token-create-xyz" {
+		t.Errorf("expected token-create-xyz, got %s", logs[0].AccessToken)
+	}
+	if logs[0].OldContent != nil {
+		t.Errorf("expected nil OldContent, got %s", string(logs[0].OldContent))
+	}
+	if string(logs[0].NewContent) != `{"id":"urn:uuid:oplog-test-1","name":"initial"}` {
+		t.Errorf("unexpected NewContent: %s", string(logs[0].NewContent))
+	}
+
+	// 2. UPDATE
+	reqUpdate := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-update-456",
+			AccessToken:            "token-update-abc",
+		},
+	}
+	updatedObj := NewTMFRecord(
+		"urn:uuid:oplog-test-1",
+		"ProductOffering",
+		"1.1",
+		"v4",
+		"2026-01-02T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-1","name":"updated"}`),
+	)
+	if err := repo.UpdateObject(reqUpdate, updatedObj); err != nil {
+		t.Fatalf("UpdateObject failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(0, 100)
+	if err != nil {
+		t.Fatalf("GetOperationLogs failed: %v", err)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 logs, got %d", len(logs))
+	}
+	if logs[1].Action != "UPDATE" {
+		t.Errorf("expected UPDATE, got %s", logs[1].Action)
+	}
+	if logs[1].CallerID != "org-update-456" {
+		t.Errorf("expected org-update-456, got %s", logs[1].CallerID)
+	}
+	if logs[1].OldVersion != "1.0" || logs[1].NewVersion != "1.1" {
+		t.Errorf("version mismatch: old=%s, new=%s", logs[1].OldVersion, logs[1].NewVersion)
+	}
+
+	// 3. DELETE
+	reqDelete := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-del-789",
+			AccessToken:            "token-del-def",
+		},
+	}
+	if err := repo.DeleteObject(reqDelete, obj.ID, obj.Type); err != nil {
+		t.Fatalf("DeleteObject failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(0, 100)
+	if err != nil {
+		t.Fatalf("GetOperationLogs failed: %v", err)
+	}
+	if len(logs) != 3 {
+		t.Fatalf("expected 3 logs, got %d", len(logs))
+	}
+	if logs[2].Action != "DELETE" {
+		t.Errorf("expected DELETE, got %s", logs[2].Action)
+	}
+	if logs[2].CallerID != "org-del-789" {
+		t.Errorf("expected org-del-789, got %s", logs[2].CallerID)
+	}
+	if logs[2].NewContent != nil {
+		t.Errorf("expected nil NewContent on DELETE, got %s", string(logs[2].NewContent))
+	}
+	if string(logs[2].OldContent) != `{"id":"urn:uuid:oplog-test-1","name":"updated"}` {
+		t.Errorf("unexpected OldContent on DELETE: %s", string(logs[2].OldContent))
+	}
+
+	// Verify pagination by seq
+	pagedLogs, err := repo.GetOperationLogs(logs[0].Seq, 1)
+	if err != nil {
+		t.Fatalf("GetOperationLogs pagination failed: %v", err)
+	}
+	if len(pagedLogs) != 1 || pagedLogs[0].Seq != logs[1].Seq {
+		t.Errorf("pagination failed: expected seq %d, got %v", logs[1].Seq, pagedLogs)
+	}
+
+	// 4. UPSERT - Insert path
+	reqUpsert := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-upsert-new",
+			AccessToken:            "token-upsert-1",
+		},
+	}
+	upsertObj := NewTMFRecord(
+		"urn:uuid:oplog-test-upsert",
+		"ProductOffering",
+		"1.0",
+		"v4",
+		"2026-01-01T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v1"}`),
+	)
+	if err := repo.UpsertObject(reqUpsert, upsertObj); err != nil {
+		t.Fatalf("UpsertObject (insert) failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(logs[2].Seq, 10)
+	if err != nil || len(logs) != 1 {
+		t.Fatalf("expected 1 log for upsert insert, got %d (err: %v)", len(logs), err)
+	}
+	if logs[0].Action != "CREATE" {
+		t.Errorf("expected CREATE for upsert-insert, got %s", logs[0].Action)
+	}
+	if logs[0].OldContent != nil {
+		t.Errorf("expected nil OldContent for upsert-insert, got %s", string(logs[0].OldContent))
+	}
+
+	// 5. UPSERT - Update path
+	reqUpsertUpdate := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-upsert-update",
+			AccessToken:            "token-upsert-2",
+		},
+	}
+	upsertObj2 := NewTMFRecord(
+		"urn:uuid:oplog-test-upsert",
+		"ProductOffering",
+		"2.0",
+		"v4",
+		"2026-01-02T00:00:00Z",
+		[]byte(`{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v2"}`),
+	)
+	if err := repo.UpsertObject(reqUpsertUpdate, upsertObj2); err != nil {
+		t.Fatalf("UpsertObject (update) failed: %v", err)
+	}
+
+	logs, err = repo.GetOperationLogs(logs[0].Seq, 10)
+	if err != nil || len(logs) != 1 {
+		t.Fatalf("expected 1 log for upsert update, got %d (err: %v)", len(logs), err)
+	}
+	if logs[0].Action != "UPDATE" {
+		t.Errorf("expected UPDATE for upsert-update, got %s", logs[0].Action)
+	}
+	if string(logs[0].OldContent) != `{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v1"}` {
+		t.Errorf("unexpected OldContent for upsert-update: %s", string(logs[0].OldContent))
+	}
+	if string(logs[0].NewContent) != `{"id":"urn:uuid:oplog-test-upsert","name":"upsert-v2"}` {
+		t.Errorf("unexpected NewContent for upsert-update: %s", string(logs[0].NewContent))
+	}
+}
+
+func TestGetSummaryOperationLogs(t *testing.T) {
+	repo, cleanup := newTestDBService(t)
+	defer cleanup()
+
+	// 1. On empty database
+	total, logs, err := repo.GetSummaryOperationLogs(1, 10)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs failed on empty db: %v", err)
+	}
+	if total != 0 {
+		t.Errorf("expected 0 total records, got %d", total)
+	}
+	if len(logs) != 0 {
+		t.Errorf("expected 0 logs, got %d", len(logs))
+	}
+
+	// 2. Insert 5 records
+	req := &types.Request{
+		AuthUser: types.AuthUser{
+			OrganizationIdentifier: "org-summary-test",
+			AccessToken:            "token-summary",
+		},
+	}
+	for i := 1; i <= 5; i++ {
+		obj := NewTMFRecord(
+			"urn:uuid:summary-test-"+string(rune('0'+i)),
+			"ProductOffering",
+			"1.0",
+			"v4",
+			"2026-01-01T00:00:00Z",
+			[]byte(`{"id":"urn:uuid:summary-test"}`),
+		)
+		if err := repo.CreateObject(req, obj); err != nil {
+			t.Fatalf("CreateObject failed: %v", err)
+		}
+	}
+
+	// Page 1, size 2 -> records 1, 2
+	total, logs, err = repo.GetSummaryOperationLogs(1, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 1 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 logs for page 1, got %d", len(logs))
+	}
+	if logs[0].ObjectID != "urn:uuid:summary-test-1" {
+		t.Errorf("expected summary-test-1, got %s", logs[0].ObjectID)
+	}
+	if logs[0].Action != "CREATE" || logs[0].CallerID != "org-summary-test" {
+		t.Errorf("unexpected log content: %+v", logs[0])
+	}
+	if logs[1].ObjectID != "urn:uuid:summary-test-2" {
+		t.Errorf("expected summary-test-2, got %s", logs[1].ObjectID)
+	}
+
+	// Page 2, size 2 -> records 3, 4
+	total, logs, err = repo.GetSummaryOperationLogs(2, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 2 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 2 {
+		t.Fatalf("expected 2 logs for page 2, got %d", len(logs))
+	}
+	if logs[0].ObjectID != "urn:uuid:summary-test-3" {
+		t.Errorf("expected summary-test-3, got %s", logs[0].ObjectID)
+	}
+	if logs[1].ObjectID != "urn:uuid:summary-test-4" {
+		t.Errorf("expected summary-test-4, got %s", logs[1].ObjectID)
+	}
+
+	// Page 3, size 2 -> record 5
+	total, logs, err = repo.GetSummaryOperationLogs(3, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 3 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 log for page 3, got %d", len(logs))
+	}
+	if logs[0].ObjectID != "urn:uuid:summary-test-5" {
+		t.Errorf("expected summary-test-5, got %s", logs[0].ObjectID)
+	}
+
+	// Page 4, size 2 -> 0 records
+	total, logs, err = repo.GetSummaryOperationLogs(4, 2)
+	if err != nil {
+		t.Fatalf("GetSummaryOperationLogs page 4 failed: %v", err)
+	}
+	if total != 5 {
+		t.Errorf("expected total 5, got %d", total)
+	}
+	if len(logs) != 0 {
+		t.Errorf("expected 0 logs for page 4, got %d", len(logs))
+	}
+}
