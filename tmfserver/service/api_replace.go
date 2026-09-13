@@ -29,7 +29,7 @@ func (svc *Service) ReplaceTMFObject(ctx context.Context, req *Request) *Respons
 	}
 
 	// Ensure TMF metadata (ID, version, href, etc.)
-	if errorResponse := svc.verifyObjectOnREPLACE(req, incomingObjectMap); errorResponse != nil {
+	if errorResponse := svc.verifyObjectOnReplace(req, incomingObjectMap); errorResponse != nil {
 		return errorResponse
 	}
 

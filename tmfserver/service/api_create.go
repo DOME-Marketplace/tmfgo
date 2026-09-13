@@ -30,7 +30,7 @@ func (svc *Service) CreateTMFObject(ctx context.Context, req *Request) *Response
 	}
 
 	// Ensure TMF metadata (ID, version, href, etc.)
-	if errorResponse := svc.verifyObjectOnPOST(req, incomingObjectMap); errorResponse != nil {
+	if errorResponse := svc.verifyObjectOnCreate(req, incomingObjectMap); errorResponse != nil {
 		bodyJson, _ := json.MarshalIndent(incomingObjectMap, "", "  ")
 		slog.Error(string(bodyJson))
 		return errorResponse

@@ -131,12 +131,12 @@ func (svc *Service) parseFieldsParam(fieldsParam string) map[string]bool {
 	return fieldSet
 }
 
-// verifyObjectOnPOST handles the validation of TMF metadata fields.
+// verifyObjectOnCreate handles the validation of TMF metadata fields.
 // We verify that the object includes the required fields as per TM Forum specs,
 // and also the ones that are mandatory in our implementation.
 // Note that we are lenient on accepting objects, in the sense that we accept objects with more fields than in the
 // TMF specification. This is OK, as it does not compromise consistency of the objects.
-func (svc *Service) verifyObjectOnPOST(req *Request, incomingObjMap repo.TMFObjectMap) *Response {
+func (svc *Service) verifyObjectOnCreate(req *Request, incomingObjMap repo.TMFObjectMap) *Response {
 
 	// Check existence of required fields as per TM Forum specs for this action (CREATE) and this type of object
 	actionDefinition := types.GetActionDefinition(req.ResourceName, string(req.Action))
@@ -254,7 +254,7 @@ func (svc *Service) verifyObjectOnPOST(req *Request, incomingObjMap repo.TMFObje
 }
 
 // REPLACE is called only by an admin, so we perform less verifications
-func (svc *Service) verifyObjectOnREPLACE(req *Request, incomingObjMap repo.TMFObjectMap) *Response {
+func (svc *Service) verifyObjectOnReplace(req *Request, incomingObjMap repo.TMFObjectMap) *Response {
 
 	// Check existence of required fields as per TM Forum specs for this action (CREATE) and this type of object
 	actionDefinition := types.GetActionDefinition(req.ResourceName, string(req.Action))
