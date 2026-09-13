@@ -5,36 +5,36 @@
 [![Release Workflow](https://github.com/DOME-Marketplace/tmfgo/actions/workflows/release.yml/badge.svg)](https://github.com/DOME-Marketplace/tmfgo/actions/workflows/release.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/DOME-Marketplace/tmfgo.svg)](https://pkg.go.dev/github.com/DOME-Marketplace/tmfgo)
-[![GHCR](https://img.shields.io/badge/GHCR-tmforum-blue?logo=github)](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum)
+[![GHCR](https://img.shields.io/badge/GHCR-tmfgo-blue?logo=github)](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmfgo)
 
 
-`tmforum` is a [TM Forum (TMF) Open API](https://www.tmforum.org/oda/open-apis/directory) server written in Go, which can operate in two modes.
+`tmfgo` is a [TM Forum (TMF) Open API](https://www.tmforum.org/oda/open-apis/directory) server written in Go, which can operate in two modes.
 
 In **proxy** mode it runs in front of a remote TMF API server, adding **authentication** and **authorization**. The server includes both a [Policy Enforcement Point (PEP)](https://csrc.nist.gov/glossary/term/policy_enforcement_point) and a [Policy Decision Point (PDP)](https://csrc.nist.gov/glossary/term/policy_decision_point), enforcing authentication and fine-grained authorization using [Starlark](https://starlark-lang.org/) scripts.
-In this mode, `tmforum` acts also as a smart **cache** in front of the remote server, reducing the load on it and improving the response times.
+In this mode, `tmfgo` acts also as a smart **cache** in front of the remote server, reducing the load on it and improving the response times.
 
 In **standalone** mode it is a full self-contained TM Forum server implemented in Go, as a single binary simple to install and operate. It uses few resources (compared to other implementations like ones based in Java), and it is also fast to start (less than 1 second). In this mode the authentication and authorization features provided by the PEP/PDP are also available.
 
 The server passes the [TM Forum Conformance Test Kit](https://github.com/tmforum-randd/CTK) tests for TMF V4 APIs.
 
 There are several ways to run the server. The simplest is to use the already built container image in
-[GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum), which is [**signed using Sigstore Cosign**](https://www.sigstore.dev/) to provide traceability and verifiability of the software supply chain.
+[GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmfgo), which is [**signed using Sigstore Cosign**](https://www.sigstore.dev/) to provide traceability and verifiability of the software supply chain.
 
 Alternatively, the software can be built and run from the source code, integrating with your CI/CD system.
 
 
 ## Using the pre-built container image
 
-The container image at its different versions is available at [GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum) and can be run as follows:
+The container image at its different versions is available at [GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmfgo) and can be run as follows:
 
 ```bash
-docker run -p 9991:9991 ghcr.io/hesusruiz/tmforum:<version>
+docker run -p 9991:9991 ghcr.io/hesusruiz/tmfgo:<version>
 ```
 
 For example:
 
 ```bash
-docker run -p 9991:9991 ghcr.io/hesusruiz/tmforum:v1.0.2
+docker run -p 9991:9991 ghcr.io/hesusruiz/tmfgo:v1.0.2
 ```
 
 The container can be configured as described in [Configuring and running](#configuring-and-running).
@@ -75,20 +75,20 @@ Cosign verifies **digests**, not tags.
 To get the digest for any version:
 
 ```sh
-cosign triangulate ghcr.io/hesusruiz/tmforum:<version>
+cosign triangulate ghcr.io/hesusruiz/tmfgo:<version>
 ```
 Where `<version>` is the tag (e.g., `v1.0.2`) of the image you want to verify.
 
 Example:
 
 ```sh
-cosign triangulate ghcr.io/hesusruiz/tmforum:v1.0.2
+cosign triangulate ghcr.io/hesusruiz/tmfgo:v1.0.2
 ```
 
 This prints something like:
 
 ```
-ghcr.io/hesusruiz/tmforum@sha256:<digest>
+ghcr.io/hesusruiz/tmfgo@sha256:<digest>
 ```
 
 Copy the digest for the next step.
@@ -101,7 +101,7 @@ Use the digest you obtained:
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
-  ghcr.io/hesusruiz/tmforum@sha256:<digest>
+  ghcr.io/hesusruiz/tmfgo@sha256:<digest>
 ```
 
 If verification succeeds, Cosign will show:
@@ -128,7 +128,7 @@ if [ $# -ne 1 ]; then
 fi
 
 VERSION="$1"
-IMAGE="ghcr.io/hesusruiz/tmforum:${VERSION}"
+IMAGE="ghcr.io/hesusruiz/tmfgo:${VERSION}"
 
 # Check cosign availability
 if ! command -v cosign >/dev/null 2>&1; then
@@ -149,7 +149,7 @@ cosign verify \
   "${DIGEST}"
 
 echo "✔ Verification successful"
-echo "The image is authentic, signed by the tmforum GitHub workflow, and recorded in the Rekor transparency log."
+echo "The image is authentic, signed by the tmfgo GitHub workflow, and recorded in the Rekor transparency log."
 ```
 
 Run it like:
@@ -189,7 +189,7 @@ This creates a tamper‑proof chain of custody from source -> build -> artifact.
 
 By verifying signatures, users ensure:
 
-- the image was built by the **official tmforum GitHub workflow** in this repository.
+- the image was built by the **official tmfgo GitHub workflow** in this repository.
 - the image has **not been tampered with**.  
 - the image corresponds to the **source code** at the tagged version, enabling easy auditing of the real contents of the image.
 - the signature is **publicly logged** and cannot be removed or altered.  
@@ -219,11 +219,11 @@ This provides verifiable trust without relying on private infrastructure.
 Users can verify any version using Cosign:
 
 ```sh
-cosign triangulate ghcr.io/hesusruiz/tmforum:<version>
+cosign triangulate ghcr.io/hesusruiz/tmfgo:<version>
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
-  ghcr.io/hesusruiz/tmforum@sha256:<digest>
+  ghcr.io/hesusruiz/tmfgo@sha256:<digest>
 ```
 
 Or simply run the included `verify.sh` script.
@@ -236,14 +236,14 @@ The application is designed to be containerized.
 
 1.  **Build the container:**
     ```bash
-    docker build -t tmforum .
+    docker build -t tmfgo .
     ```
 
 2.  **Run the container:**
     The container requires the `TMF_ADMIN_TOKEN` environment variable to specify the admin token, wich callers will have to use to perform admin operations.
 
     ```bash
-    docker run -e TMF_ADMIN_TOKEN=1234567890 -p 9991:9991 tmforum
+    docker run -e TMF_ADMIN_TOKEN=1234567890 -p 9991:9991 tmfgo
     ```
 
     The container also acceps other environment variables which configure the behavior of the server. These are:
@@ -260,7 +260,7 @@ The application is designed to be containerized.
     The system maintains backups of the database in the `/data/backups` directory of the container. It maintains a rotating set of 7 backups, one for each day of the week. The backups contain the number of the day of the week in the name (e.g., `backup_01.db`, `backup_02.db`, etc.). The backups are performed every 2 hours at even hours (e.g., 11:00, 13:00, etc.) in the backup file corresponding to the day of the week. Storing the backups in a different system (e.g., in a cloud storage service) is as simple as copying the `/data/backups` directory (or just the latest backup file) to the desired location. To ensure that there are no conflicts with the scheduled updates of the backups, it is recommended to make the copy on even hours (e.g., 10:00, 12:00, etc.).
 
     ```bash
-    docker run -e TMF_ADMIN_TOKEN=1234567890 -p 9991:9991 -v /path/to/your/database:/data tmforum
+    docker run -e TMF_ADMIN_TOKEN=1234567890 -p 9991:9991 -v /path/to/your/database:/data tmfgo
     ```
     This will persist the database in the `/path/to/your/database` directory on the host and create backups in the same directory as the database. It will create a subdirectory `backups` to store the backups.
 
@@ -270,7 +270,7 @@ Configuration is managed via profiles defined in `config/config_data.go`. This a
 
 To add or modify a profile, edit `config/config_data.go`. You can specify the profile to use at runtime with the `-run` flag:
 ```bash
-./bin/tmforum -run <profile_name>
+./bin/tmfgo -run <profile_name>
 ```
 
 ### Policy Engine (PDP)
@@ -311,7 +311,7 @@ To run the server locally for development:
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/DOME-Marketplace/tmfgo.git
-    cd tmforum
+    cd tmfgo
     ```
 
 2.  **Run with default configuration:**
@@ -322,7 +322,7 @@ To run the server locally for development:
 
 3.  **Build the binary:**
     ```bash
-    go build -o bin/tmforum main.go
+    go build -o bin/tmfgo main.go
     ```
 
 4.  **Run Tests:**
