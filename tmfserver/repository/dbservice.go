@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -370,6 +371,8 @@ func (repo *DBService) UpsertObject(req *types.Request, obj *TMFRecord) error {
 	}
 	defer tx.Rollback()
 
+	// Try to retrieve object to check if we already have it in our local database
+	// An object not found is not an error, instead we get a nil object and no error.
 	oldObj, err := repo.getObjectWithTx(tx, obj.ID, obj.Type)
 	if err != nil {
 		return err
@@ -380,6 +383,8 @@ func (repo *DBService) UpsertObject(req *types.Request, obj *TMFRecord) error {
 
 	var action string
 	if oldObj == nil {
+
+		// We dont have the object, must insert it
 		action = "CREATE"
 		obj.CreatedAt = now.Unix()
 
@@ -402,7 +407,22 @@ func (repo *DBService) UpsertObject(req *types.Request, obj *TMFRecord) error {
 		if err != nil {
 			return errl.Errorf("failed to insert object id=%s type=%s: %w", obj.ID, obj.Type, err)
 		}
+
+		// Record the CREATED operation
+		if err := repo.recordOperation(tx, req, action, nil, obj); err != nil {
+			return err
+		}
+
+		return tx.Commit()
+
 	} else {
+
+		if bytes.Equal(oldObj.Content, obj.Content) {
+			// The objects are identical, no need to do anything
+			slog.Debug("dbLayer: UpsertObject - Object not changed", slog.String("id", obj.ID), slog.String("type", obj.Type))
+			return tx.Commit()
+		}
+
 		action = "UPDATE"
 		obj.CreatedAt = oldObj.CreatedAt
 
@@ -423,13 +443,14 @@ func (repo *DBService) UpsertObject(req *types.Request, obj *TMFRecord) error {
 		if err != nil {
 			return errl.Errorf("failed to update object id=%s type=%s: %w", obj.ID, obj.Type, err)
 		}
+
+		if err := repo.recordOperation(tx, req, action, oldObj, obj); err != nil {
+			return err
+		}
+
+		return tx.Commit()
 	}
 
-	if err := repo.recordOperation(tx, req, action, oldObj, obj); err != nil {
-		return err
-	}
-
-	return tx.Commit()
 }
 
 // DeleteObject deletes a TMF object by its ID and type.
