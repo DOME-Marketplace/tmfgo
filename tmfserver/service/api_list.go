@@ -34,7 +34,7 @@ func (svc *Service) ListTMFObjects(ctx context.Context, req *Request) *Response 
 	}
 
 	// Parse field selection parameters, which are the fields to be returned in the response.
-	fieldsParam := req.QueryParams.Get("fields")
+	fieldsParam, _ := req.QueryParams["fields"]
 	fieldSet := svc.parseFieldsParam(fieldsParam)
 
 	var responseData []repo.TMFObjectMap
