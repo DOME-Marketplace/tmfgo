@@ -17,7 +17,7 @@ type TMFStorer interface {
 	UpdateObject(req *types.Request, obj *repo.TMFRecord) error
 	UpsertObject(req *types.Request, obj *repo.TMFRecord) error
 	DeleteObject(req *types.Request, id, resourceName string) error
-	ListObjects(req *types.Request, filter repo.ObjectFilter) ([]repo.TMFRecord, error)
+	ListObjects(req *types.Request, filter repo.ObjectFilter) ([]repo.TMFRecord, int, error)
 	GetOperationLogs(afterSeq int64, limit int) ([]repo.TMFOpLogRecord, error)
 	GetSummaryOperationLogs(page, size int) (totalRecords int, logs []repo.SummaryOpLogRecord, err error)
 	GetOperation(seq int64) (*repo.TMFOpLogRecord, error)
