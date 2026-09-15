@@ -107,8 +107,8 @@ func (svc *Service) parsePaginationParams(req *Request) (limit int, offset int) 
 }
 
 // parseFieldsParam parses the 'fields' query parameter into a field set.
-func (svc *Service) parseFieldsParam(fieldsParam string) map[string]bool {
-	if fieldsParam == "" {
+func (svc *Service) parseFieldsParam(fields []string) map[string]bool {
+	if len(fields) == 0 {
 		return nil
 	}
 
@@ -122,11 +122,14 @@ func (svc *Service) parseFieldsParam(fieldsParam string) map[string]bool {
 		"lifecycleStatus": true,
 	}
 
+	// Check if the first field is "none"
+	if fields[0] == "none" {
+		return fieldSet
+	}
+
 	// Add the user specified fields
-	if fieldsParam != "none" {
-		for f := range strings.SplitSeq(fieldsParam, ",") {
-			fieldSet[strings.TrimSpace(f)] = true
-		}
+	for _, f := range fields {
+		fieldSet[strings.TrimSpace(f)] = true
 	}
 	return fieldSet
 }
