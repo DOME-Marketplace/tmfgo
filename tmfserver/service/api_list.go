@@ -26,7 +26,10 @@ func (svc *Service) ListTMFObjects(ctx context.Context, req *Request) *Response 
 	diagnostic := req.QueryParams.Has("diagnostic")
 
 	// Parse pagination parameters
-	userLimit, userOffset := svc.parsePaginationParams(req)
+	userLimit, userOffset, err := svc.parsePaginationParams(req)
+	if err != nil {
+		return ErrorResponsef(http.StatusBadRequest, "failed to parse pagination parameters: %w", err)
+	}
 
 	// If the user specified explicitly limit=0, return an empty list. This may be used to test the API without returning all the objects.
 	if userLimit == 0 {

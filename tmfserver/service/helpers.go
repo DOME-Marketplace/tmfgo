@@ -88,20 +88,24 @@ func (svc *Service) applyAttributeSelection(obj repo.TMFObjectMap, fieldSet map[
 }
 
 // parsePaginationParams extracts limit and offset from query parameters with defaults limit=10, offset=0
-func (svc *Service) parsePaginationParams(req *Request) (limit int, offset int) {
+func (svc *Service) parsePaginationParams(req *Request) (limit int, offset int, err error) {
 	limit = 10
 	offset = 0
 
 	if val := req.QueryParams.Get("limit"); val != "" {
-		if i, err := strconv.Atoi(val); err == nil {
-			limit = i
+		i, err := strconv.Atoi(val)
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to parse limit: %w", err)
 		}
+		limit = i
 	}
 
 	if val := req.QueryParams.Get("offset"); val != "" {
-		if i, err := strconv.Atoi(val); err == nil {
-			offset = i
+		i, err := strconv.Atoi(val)
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to parse offset: %w", err)
 		}
+		offset = i
 	}
 	return
 }
