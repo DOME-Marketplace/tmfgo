@@ -241,23 +241,23 @@ func (svc *Service) listRemoteObjects(ctx context.Context, req *Request, userLim
 					responseObjects = append(responseObjects, receivedObject)
 				}
 
-				// Delete the offending object if we are not in production
-				if svc.environment != config.DOME_PRO {
-					pathPrefix, err := config.ExternalUpstreamTMFPath(req.ResourceName)
-					if err != nil {
-						slog.Error("failed to get path prefix", "error", err, "resourceName", req.ResourceName)
-						continue
-					}
-					path := fmt.Sprintf("%s/%s", pathPrefix, receivedObject.ID())
+				// // Delete the offending object if we are not in production
+				// if svc.environment != config.DOME_PRO {
+				// 	pathPrefix, err := config.ExternalUpstreamTMFPath(req.ResourceName)
+				// 	if err != nil {
+				// 		slog.Error("failed to get path prefix", "error", err, "resourceName", req.ResourceName)
+				// 		continue
+				// 	}
+				// 	path := fmt.Sprintf("%s/%s", pathPrefix, receivedObject.ID())
 
-					resp, _, err := svc.tmfClient.Delete(ctx, path, upstreamHeaders)
-					if err != nil || resp.StatusCode >= 300 {
-						slog.Error("failed to delete invalid object", "error", err, "status_code", resp.StatusCode, "path", path)
-						continue
-					}
+				// 	resp, _, err := svc.tmfClient.Delete(ctx, path, upstreamHeaders)
+				// 	if err != nil || resp.StatusCode >= 300 {
+				// 		slog.Error("failed to delete invalid object", "error", err, "status_code", resp.StatusCode, "path", path)
+				// 		continue
+				// 	}
 
-					slog.Info("Invalid object deleted", "resourceName", req.ResourceName, "id", receivedObject.ID())
-				}
+				// 	slog.Info("Invalid object deleted", "resourceName", req.ResourceName, "id", receivedObject.ID())
+				// }
 
 				continue
 			}
