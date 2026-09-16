@@ -60,6 +60,7 @@ var domedevConfig = &Config{
 		OfferingLaunchOnlyByAdmin: false,
 		GenerateIDOnCreate:        false,
 		AllowIDInBody:             false,
+		RetrieveLocalFirst:        true,
 	},
 }
 
@@ -107,6 +108,7 @@ var domepreConfig = &Config{
 		OfferingLaunchOnlyByAdmin: false,
 		GenerateIDOnCreate:        false,
 		AllowIDInBody:             false,
+		RetrieveLocalFirst:        true,
 	},
 }
 
@@ -154,5 +156,6 @@ var domeproConfig = &Config{
 		OfferingLaunchOnlyByAdmin: false,
 		GenerateIDOnCreate:        false,
 		AllowIDInBody:             false,
+		RetrieveLocalFirst:        true,
 	},
 }
