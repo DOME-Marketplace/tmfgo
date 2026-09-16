@@ -47,28 +47,35 @@ func (svc *Service) ListTMFObjects(ctx context.Context, req *Request) *Response 
 
 	var responseData []repo.TMFObjectMap
 	var responseHeaders map[string]string
-	var resp *Response
+	var errorResponse *Response
 
 	// Retrieve objects (Remote or Local)
 	if svc.proxyEnabled {
-		var err error
-		var diagnosticObjects []repo.ValidationResult
-		responseData, responseHeaders, diagnosticObjects, err = svc.listRemoteObjects(ctx, req, userLimit, userOffset, fieldSet)
-		if err != nil {
-			return ErrorResponsef(http.StatusInternalServerError, "failed to proxy request: %w", err)
+		if svc.Features.RetrieveLocalFirst {
+
+			responseData, responseHeaders, errorResponse = svc.listLocalObjects(req, userLimit, userOffset, fieldSet)
+			if errorResponse != nil {
+				return errorResponse
+			}
+
+		} else {
+
+			var err error
+			var diagnosticObjects []repo.ValidationResult
+			responseData, responseHeaders, diagnosticObjects, err = svc.listRemoteObjects(ctx, req, userLimit, userOffset, fieldSet)
+			if err != nil {
+				return ErrorResponsef(http.StatusInternalServerError, "failed to proxy request: %w", err)
+			}
+			if diagnostic && len(diagnosticObjects) > 0 {
+				return &Response{StatusCode: http.StatusOK, Headers: responseHeaders, Body: diagnosticObjects}
+			}
+
 		}
-		if diagnostic || len(diagnosticObjects) > 0 {
-			return &Response{StatusCode: http.StatusOK, Headers: responseHeaders, Body: diagnosticObjects}
-			// return &Response{
-			// 	StatusCode: http.StatusOK,
-			// 	Headers:    responseHeaders,
-			// 	Body:       responseData,
-			// }
-		}
+
 	} else {
-		responseData, responseHeaders, resp = svc.listLocalObjects(req, userLimit, userOffset, fieldSet)
-		if resp != nil {
-			return resp
+		responseData, responseHeaders, errorResponse = svc.listLocalObjects(req, userLimit, userOffset, fieldSet)
+		if errorResponse != nil {
+			return errorResponse
 		}
 	}
 

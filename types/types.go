@@ -65,6 +65,16 @@ func GetResourceDefinition(resource string) *Resource {
 	return nil
 }
 
+func GetPublicResources() []string {
+	publicResources := make([]string, 0, len(tmf_resource_requirements))
+	for resourceName, resource := range tmf_resource_requirements {
+		if resource.Public {
+			publicResources = append(publicResources, resourceName)
+		}
+	}
+	return publicResources
+}
+
 func GetActionDefinition(resource string, action string) *Action {
 	res := GetResourceDefinition(resource)
 	if res == nil {

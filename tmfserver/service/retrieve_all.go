@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/hesusruiz/tmforum/config"
 	"github.com/hesusruiz/tmforum/internal/errl"
@@ -15,70 +15,61 @@ import (
 	"github.com/hesusruiz/tmforum/types"
 )
 
-// RetrieveAll retrieves all TMF objects of a given type.
-func (svc *Service) RetrieveAll(ctx context.Context) *Response {
-
-	// Create a Request for listing all ProductOfferings
-	req := &Request{
-		Method:       "GET",
-		Action:       ActionLIST,
-		APIfamily:    "productCatalogManagement",
-		APIVersion:   "v4",
-		ResourceName: types.ProductOffering,
-		QueryParams: url.Values{
-			"limit": []string{"10000"},
-		},
-	}
-
-	// Make sure the resource is supported
-	res := types.GetResourceDefinition(req.ResourceName)
-	if res == nil {
-		return ErrorResponsef(http.StatusBadRequest, "resource type %s not supported", req.ResourceName)
-	}
-
-	diagnostic := true
-
-	// Parse pagination parameters
-	userLimit, userOffset, err := svc.parsePaginationParams(req)
-	if err != nil {
-		return ErrorResponsef(http.StatusBadRequest, "failed to parse pagination parameters: %w", err)
-	}
-
-	// If the user specified explicitly limit=0, return an empty list. This may be used to test the API without returning all the objects.
-	if userLimit == 0 {
-		return &Response{StatusCode: http.StatusOK, Body: []repo.TMFObjectMap{}}
-	}
-
-	// Parse field selection parameters, which are the fields to be returned in the response.
-	fieldsParam, _ := req.QueryParams["fields"]
-	fieldSet := svc.parseFieldsParam(fieldsParam)
-
-	var responseData []repo.TMFObjectMap
-	var responseHeaders map[string]string
-
-	// Retrieve objects
-	var diagnosticObjects []repo.ValidationResult
-	responseData, responseHeaders, diagnosticObjects, err = svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset, fieldSet)
-	if err != nil {
-		return ErrorResponsef(http.StatusInternalServerError, "failed to proxy request: %w", err)
-	}
-	if diagnostic || len(diagnosticObjects) > 0 {
-		// return &Response{StatusCode: http.StatusOK, Headers: responseHeaders, Body: diagnosticObjects}
-		return &Response{
-			StatusCode: http.StatusOK,
-			Headers:    responseHeaders,
-			Body:       responseData,
+func (svc *Service) ScheduleRetrieveAll() {
+	go func() {
+		for {
+			// Retrieve all public resources at the beginning and every 15 minutes
+			err := svc.RetrieveAll(context.Background())
+			if err != nil {
+				slog.Error("failed to retrieve all product offerings", "error", err)
+			}
+			time.Sleep(15 * time.Minute)
 		}
-	}
-
-	return &Response{
-		StatusCode: http.StatusOK,
-		Headers:    responseHeaders,
-		Body:       responseData,
-	}
+	}()
 }
 
-func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, userLimit, userOffset int, fieldSet map[string]bool) (
+// RetrieveAll retrieves all TMF objects of a given type.
+func (svc *Service) RetrieveAll(ctx context.Context) error {
+
+	totalNumber := 0
+
+	publicResources := types.GetPublicResources()
+	for _, resource := range publicResources {
+
+		// Create a Request for listing all ProductOfferings
+		req := &Request{
+			Method:       "GET",
+			Action:       ActionLIST,
+			APIfamily:    "productCatalogManagement",
+			APIVersion:   "v4",
+			ResourceName: resource,
+			QueryParams: url.Values{
+				"limit": []string{"10000"},
+			},
+		}
+
+		slog.Info("RetrieveAll", "resource", resource)
+
+		// Parse pagination parameters
+		userLimit := 10000
+		userOffset := 0
+
+		// Retrieve objects
+		receivedObjects, _, _, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset)
+		if err != nil {
+			slog.Error("Failed to retrieve objects", "error", err, "resource", resource)
+			continue
+		}
+		totalNumber += len(receivedObjects)
+
+	}
+
+	slog.Info("Retrieved", "totalNumber", totalNumber)
+
+	return nil
+}
+
+func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, userLimit, userOffset int) (
 	responseObjects []repo.TMFObjectMap, responseHeaders map[string]string, diagnosticObjects []repo.ValidationResult, err error) {
 
 	// Delete the attribute selection for the query to the upstream server. We will receive full objects and
@@ -124,7 +115,7 @@ func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, u
 		remoteTotalObjects = totalObjects
 
 		if !req.HealthRequest {
-			slog.Debug("received objects from remote", "num_objects", len(receivedObjects))
+			slog.Info("received objects from remote", "num_objects", len(receivedObjects))
 		}
 
 		// Stop requesting pages if we received zero objects.
@@ -204,7 +195,7 @@ func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, u
 	}
 
 	if !req.HealthRequest {
-		slog.Debug("Remote objects listed", slog.Int("valid", len(responseObjects)), slog.Int("invalid", invalidObjects), slog.String("resourceName", req.ResourceName))
+		slog.Info("Remote objects listed", slog.Int("valid", len(responseObjects)), slog.Int("invalid", invalidObjects), slog.String("resourceName", req.ResourceName))
 	}
 
 	return responseObjects, responseHeaders, diagnosticObjects, nil

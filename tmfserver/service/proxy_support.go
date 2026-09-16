@@ -334,6 +334,8 @@ func (svc *Service) listLocalObjects(req *Request, userLimit, userOffset int, fi
 	req.QueryParams.Set("offset", strconv.Itoa(userOffset))
 	req.QueryParams.Set("limit", strconv.Itoa(userLimit))
 
+	// storageObjects will contain the objects retrieved from the local database, filtered by access control
+	// They contain all attributes, which will be filtered later
 	storageObjects, total, err := svc.storage.ListObjects(req, func(storageObject *repo.TMFRecord) bool {
 		// Convert to internal object representation
 		objMap, err := storageObject.ToTMFObjectMap()
@@ -355,6 +357,7 @@ func (svc *Service) listLocalObjects(req *Request, userLimit, userOffset int, fi
 		return nil, nil, ErrorResponsef(http.StatusInternalServerError, "failed to list objects from local database: %w", err)
 	}
 
+	// Now we create the actual objects containing the attributes selected by the user (plus the compulsory ones)
 	responseObjects := make([]repo.TMFObjectMap, 0, len(storageObjects))
 	for _, storageObject := range storageObjects {
 		// Convert to internal object representation

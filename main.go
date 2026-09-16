@@ -155,6 +155,9 @@ func runNormalProcess(configuration *config.Config) error {
 		return errl.Errorf("failed to create service: %w", err)
 	}
 
+	// Schedule retrieve all
+	tmfService.ScheduleRetrieveAll()
+
 	// Create Fiber web server with custom configuration
 	webServer := fiber.New(fiber.Config{
 		AppName:        "TMForum API Server",
