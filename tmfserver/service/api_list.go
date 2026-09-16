@@ -58,12 +58,12 @@ func (svc *Service) ListTMFObjects(ctx context.Context, req *Request) *Response 
 			return ErrorResponsef(http.StatusInternalServerError, "failed to proxy request: %w", err)
 		}
 		if diagnostic || len(diagnosticObjects) > 0 {
-			// return &Response{StatusCode: http.StatusOK, Headers: responseHeaders, Body: diagnosticObjects}
-			return &Response{
-				StatusCode: http.StatusOK,
-				Headers:    responseHeaders,
-				Body:       responseData,
-			}
+			return &Response{StatusCode: http.StatusOK, Headers: responseHeaders, Body: diagnosticObjects}
+			// return &Response{
+			// 	StatusCode: http.StatusOK,
+			// 	Headers:    responseHeaders,
+			// 	Body:       responseData,
+			// }
 		}
 	} else {
 		responseData, responseHeaders, resp = svc.listLocalObjects(req, userLimit, userOffset, fieldSet)

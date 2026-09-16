@@ -220,12 +220,19 @@ func (svc *Service) listRemoteObjects(ctx context.Context, req *Request, userLim
 			slog.Debug("received objects from remote", "num_objects", len(receivedObjects))
 		}
 
+		// Stop requesting pages if we received zero objects.
+		if len(receivedObjects) == 0 {
+			break
+		}
+
 		// We check each object to see if the user can access it.
 		// Additionally, we cache all the objects received independently of the user's access.
 		for _, receivedObject := range receivedObjects {
 
 			// Perform validations on the received object
 			validations := receivedObject.Validate(req.ResourceName)
+
+			// If the object is invalid, add it to the diagnostic objects and delete it
 			if len(validations.Errors) > 0 {
 				invalidObjects++
 				diagnosticObjects = append(diagnosticObjects, validations)
@@ -301,12 +308,8 @@ func (svc *Service) listRemoteObjects(ctx context.Context, req *Request, userLim
 			}
 		}
 
-		// Stop requesting objects from the remote server if we have enough objects to satisfy the user's request or
-		// if we have received all objects from the remote server and there is nothing more to request
-		// We use the 'len(receivedObjects) < pageSize' condition to detect if we have received all objects from the remote server.
-		// It may be that with this check we do an additional request if the remote server had an exact multiple of pageSize objects,
-		// but the robustness of the code is more important than the performance.
-		if (userLimit >= 0 && len(responseObjects) >= userLimit) || len(receivedObjects) < pageSize {
+		// Stop requesting objects from the remote server if we have enough objects to satisfy the user's request.
+		if userLimit >= 0 && len(responseObjects) >= userLimit {
 			break
 		}
 		pageOffset += pageSize

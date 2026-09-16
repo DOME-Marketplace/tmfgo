@@ -257,6 +257,15 @@ func (svc *Service) evalReadListPolicy(req *Request, obj repo.TMFObjectMap) (str
 
 	// Private objects require authentication
 	if !caller.IsAuthenticated {
+		// Provide some more info in case of public objects which are not visible
+		if obj.IsPotentiallyPublic() {
+			if objBuyer != "" {
+				return "", errl.Errorf("user not authenticated, but object has a buyer")
+			}
+			if strings.ToLower(obj.LifecycleStatus()) != "launched" {
+				return "", errl.Errorf("user not authenticated, but object is not launched")
+			}
+		}
 		return "", errl.Errorf("user not authenticated")
 	}
 
