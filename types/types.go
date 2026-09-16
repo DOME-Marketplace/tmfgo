@@ -10,10 +10,11 @@ import (
 )
 
 type Action struct {
-	Resource string   // The resource name, e.g., "ProductOffering", "ProductSpecification"
-	Action   string   // The action (synonim of the HTTP verb), e.g., "CREATE", "UPDATE"
-	Required []string // A list of the required fields in the body of the request
-	Fields   []string // A list of all the fields in the body of the request
+	Resource       string   // The resource name, e.g., "ProductOffering", "ProductSpecification"
+	resource_lower string   // The resource name in lowercase, for efficient case-insensitive lookups
+	Action         string   // The action (synonim of the HTTP verb), e.g., "CREATE", "UPDATE"
+	Required       []string // A list of the required fields in the body of the request
+	Fields         []string // A list of all the fields in the body of the request
 }
 
 func (a *Action) HasField(field string) bool {
@@ -39,14 +40,29 @@ func ParseActionDefinitions() {
 	if err := yaml.Unmarshal(tmfOperationsYAML, &tmf_resource_requirements); err != nil {
 		panic(errl.Errorf("failed to unmarshal tmf_operations.yaml: %w", err))
 	}
+
+	// Convert all resources to lowercase for efficient case-insensitive lookups
+	for _, resource := range tmf_resource_requirements {
+		for _, action := range resource.Actions {
+			action.resource_lower = strings.ToLower(action.Resource)
+		}
+	}
 }
 
 func GetResourceDefinition(resource string) *Resource {
-	res, ok := tmf_resource_requirements[resource]
-	if !ok {
-		return nil
+
+	resource_lower := strings.ToLower(resource)
+
+	// Search for one entry in tmf_resource_requirements in case-insensitive way
+	for _, res := range tmf_resource_requirements {
+		for _, action := range res.Actions {
+			if action.resource_lower == resource_lower {
+				return res
+			}
+		}
 	}
-	return res
+
+	return nil
 }
 
 func GetActionDefinition(resource string, action string) *Action {

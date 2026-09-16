@@ -63,11 +63,15 @@ func (svc *Service) GetTMFObject(ctx context.Context, req *Request) *Response {
 	// ************************************************************************************************
 
 	if authorized, err := svc.checkAuthorization(svc.ruleEngine, req, existingObjectMap); !authorized {
+		userid := req.AuthUser.OrganizationIdentifier
+		if userid == "" {
+			userid = "anonymous"
+		}
 		return ErrorResponsef(http.StatusForbidden,
-			"user %s is not authorized, object: %s, error: %w",
-			req.AuthUser.OrganizationIdentifier,
-			existingObjectMap,
-			err,
+			"user %s is not authorized, error: %s, object_id: %s",
+			userid,
+			err.Error(),
+			existingObjectMap.ID(),
 		)
 	} else {
 		slog.Debug("caller is authorized to read object", "reason", err)
