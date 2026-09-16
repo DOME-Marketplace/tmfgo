@@ -6,7 +6,7 @@
 environment: "local"
 
 # ProxyEnabled enables the TMF caching proxy functionality
-proxyEnabled: false
+proxyEnabled: true
 
 # Information about the organization operating this server
 serverOperatorOrganizationIdentifier: "VATES-A15456585"
