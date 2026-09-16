@@ -84,7 +84,7 @@ type Config struct {
 	BackgroudSync bool `json:"backgroudSync,omitempty" yaml:"backgroudSync,omitempty"`
 
 	// The special features of the environment
-	Features Features `json:"features,omitempty" yaml:"features,omitempty"`
+	Features Features `json:"features" yaml:"features,omitempty"`
 }
 
 // Features defines a set of feature flags which may depend on the environment at a given time
@@ -100,6 +100,11 @@ type Features struct {
 
 	// VerifyJWTSignature verifies the signature of the JWT.
 	VerifyJWTSignature bool `json:"verifyJWTSignature,omitempty" yaml:"verifyJWTSignature,omitempty"`
+
+	// RetrieveLocalFirst determines the order of retrieval of objects when acting as proxy.
+	// If true, the server will try to retrieve the object from the local cache first, and then from the remote server.
+	// If false, the server will try to retrieve the object from the remote server first, and then from the local cache.
+	RetrieveLocalFirst bool `json:"retrieveLocalFirst,omitempty" yaml:"retrieveLocalFirst,omitempty"`
 }
 
 func readConfigFile(filename string) (*Config, error) {

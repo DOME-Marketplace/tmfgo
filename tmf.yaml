@@ -78,3 +78,4 @@ features:
   generateIDOnCreate: false
   allowIDInBody: false
   verifyJWTSignature: false
+  retrieveLocalFirst: true

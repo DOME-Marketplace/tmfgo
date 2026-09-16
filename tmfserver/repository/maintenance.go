@@ -31,9 +31,9 @@ func ScheduleMaintenance(configuration *config.Config, repo *DBService, upg *tab
 		nextRun := now.Truncate(time.Hour).Add(time.Hour)
 
 		for {
-			d := time.Until(nextRun)
+			timeUntilNext := time.Until(nextRun)
 			// Safety measure, if we try to schedule close to the hour
-			if d <= 0 {
+			if timeUntilNext <= 0 {
 				nextRun = nextRun.Add(interval)
 				continue
 			}
@@ -43,7 +43,7 @@ func ScheduleMaintenance(configuration *config.Config, repo *DBService, upg *tab
 			select {
 			case <-repo.stopMaintenance:
 				return
-			case <-time.After(d):
+			case <-time.After(timeUntilNext):
 
 				now := time.Now()
 
