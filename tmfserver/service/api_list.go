@@ -25,6 +25,11 @@ func (svc *Service) ListTMFObjects(ctx context.Context, req *Request) *Response 
 	// This is not standard TMF, we use it to report on quality of data
 	diagnostic := req.QueryParams.Has("diagnostic")
 
+	// If the requested resource is public and the user is not authenticated, add the "lifecycleStatus=Launched" filter
+	if !req.AuthUser.IsAuthenticated && res.Public {
+		req.QueryParams.Set("lifecycleStatus", "Launched")
+	}
+
 	// Parse pagination parameters
 	userLimit, userOffset, err := svc.parsePaginationParams(req)
 	if err != nil {

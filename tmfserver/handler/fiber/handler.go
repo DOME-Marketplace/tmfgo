@@ -276,8 +276,8 @@ func (h *Handler) ListTMFObjects(c *fiber.Ctx) error {
 		return SendResponse(c, resp)
 	}
 
-	// Create a context with a timeout of 30 seconds
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// Create a context with a timeout of 1 minute
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
 	resp := h.service.ListTMFObjects(ctx, req)

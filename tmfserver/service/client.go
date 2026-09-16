@@ -262,7 +262,18 @@ type processObject func(obj repository.TMFObjectMap) (repository.TMFObjectMap, b
 
 // TMFGetList retrieves a list of TMF objects from the remote server.
 // It does not perform any validation of the objects, but delegates it to the processObject callback provided by the caller.
-func (c *TMFClient) TMFGetList(ctx context.Context, resourceName string, queryParams url.Values, pageSize int, pageOffset int, headers map[string]string, processObject processObject, healthRequest bool) ([]repository.TMFObjectMap, error) {
+func (c *TMFClient) TMFGetList(
+	ctx context.Context,
+	resourceName string,
+	queryParams url.Values,
+	pageSize int,
+	pageOffset int,
+	headers map[string]string,
+	processObject processObject,
+	healthRequest bool,
+) ([]repository.TMFObjectMap, int, error) {
+
+	remoteTotalObjects := -1
 
 	// Build the parameters to send to the remote server
 	baseParams := queryParams.Encode()
@@ -271,7 +282,7 @@ func (c *TMFClient) TMFGetList(ctx context.Context, resourceName string, queryPa
 	// The path is terminated with '&' or '?' because we will add the paging parameters later
 	basePath, err := config.ExternalUpstreamTMFPath(resourceName)
 	if err != nil {
-		return nil, errl.Errorf("failed to get path prefix: %w", err)
+		return nil, 0, errl.Errorf("failed to get path prefix: %w", err)
 	}
 	if baseParams != "" {
 		basePath += "?" + baseParams + "&"
@@ -288,12 +299,12 @@ func (c *TMFClient) TMFGetList(ctx context.Context, resourceName string, queryPa
 
 	resp, body, err := c.Get(ctx, path, headers)
 	if err != nil {
-		return nil, errl.Errorf("remote server returned error: %w", err)
+		return nil, 0, errl.Errorf("remote server returned error: %w", err)
 	}
 
 	// Check the content type of the response and return an error if it is not JSON
 	if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
-		return nil, errl.Errorf("remote server returned non-JSON content type: %s", resp.Header.Get("Content-Type"))
+		return nil, 0, errl.Errorf("remote server returned non-JSON content type: %s", resp.Header.Get("Content-Type"))
 	}
 
 	if resp.StatusCode >= 300 {
@@ -311,15 +322,23 @@ func (c *TMFClient) TMFGetList(ctx context.Context, resourceName string, queryPa
 		}
 
 		if len(errMsgs) > 0 {
-			return nil, errl.Errorf("remote server returned status %d: %s", resp.StatusCode, strings.Join(errMsgs, ", "))
+			return nil, 0, errl.Errorf("remote server returned status %d: %s", resp.StatusCode, strings.Join(errMsgs, ", "))
 		}
 
-		return nil, errl.Errorf("remote server returned status %d: %s", resp.StatusCode, string(body))
+		return nil, 0, errl.Errorf("remote server returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var objects []repository.TMFObjectMap
 	if err := json.Unmarshal(body, &objects); err != nil {
-		return nil, errl.Errorf("remote server returned invalid JSON: %w", err)
+		return nil, 0, errl.Errorf("remote server returned invalid JSON: %w", err)
+	}
+
+	if totalHeader := resp.Header.Get("X-Total-Count"); totalHeader != "" {
+		if val, err := strconv.Atoi(totalHeader); err == nil {
+			remoteTotalObjects = val
+		} else {
+			slog.Warn("Failed to parse X-Total-Count header", "value", totalHeader, "error", err)
+		}
 	}
 
 	// Process each object with the user-supplied logic
@@ -334,12 +353,12 @@ func (c *TMFClient) TMFGetList(ctx context.Context, resourceName string, queryPa
 			}
 			// If the user wants to stop processing, we return the objects retrieved so far
 			if !cont {
-				return objects, nil
+				return objects, remoteTotalObjects, nil
 			}
 		}
 	}
 
-	return objects, nil
+	return objects, remoteTotalObjects, nil
 }
 
 // Get sends a GET request to the remote server.

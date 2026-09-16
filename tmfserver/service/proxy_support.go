@@ -203,15 +203,18 @@ func (svc *Service) listRemoteObjects(ctx context.Context, req *Request, userLim
 	req.QueryParams.Del("offset")
 	req.QueryParams.Del("limit")
 
+	remoteTotalObjects := 0
 	pageSize := svc.tmfClient.PageSize()
 	pageOffset := 0
 	for {
 
 		// Get one page of objects from the remote server
-		receivedObjects, err := svc.tmfClient.TMFGetList(ctx, req.ResourceName, req.QueryParams, pageSize, pageOffset, upstreamHeaders, nil, req.HealthRequest)
+		receivedObjects, totalObjects, err := svc.tmfClient.TMFGetList(ctx, req.ResourceName, req.QueryParams, pageSize, pageOffset, upstreamHeaders, nil, req.HealthRequest)
 		if err != nil {
 			return nil, nil, nil, errl.Errorf("upstream server failed with error: %w", err)
 		}
+
+		remoteTotalObjects = totalObjects
 
 		if !req.HealthRequest {
 			slog.Debug("received objects from remote", "num_objects", len(receivedObjects))
@@ -310,7 +313,8 @@ func (svc *Service) listRemoteObjects(ctx context.Context, req *Request, userLim
 	}
 
 	responseHeaders = map[string]string{
-		"X-Total-Count": strconv.Itoa(len(responseObjects)),
+		"X-Result-Count": strconv.Itoa(len(responseObjects)),
+		"X-Total-Count":  strconv.Itoa(remoteTotalObjects),
 	}
 
 	if !req.HealthRequest {
@@ -327,7 +331,7 @@ func (svc *Service) listLocalObjects(req *Request, userLimit, userOffset int, fi
 	req.QueryParams.Set("offset", strconv.Itoa(userOffset))
 	req.QueryParams.Set("limit", strconv.Itoa(userLimit))
 
-	storageObjects, err := svc.storage.ListObjects(req, func(storageObject *repo.TMFRecord) bool {
+	storageObjects, total, err := svc.storage.ListObjects(req, func(storageObject *repo.TMFRecord) bool {
 		// Convert to internal object representation
 		objMap, err := storageObject.ToTMFObjectMap()
 		if err != nil {
@@ -362,7 +366,8 @@ func (svc *Service) listLocalObjects(req *Request, userLimit, userOffset int, fi
 	}
 
 	responseHeaders := map[string]string{
-		"X-Total-Count": strconv.Itoa(len(responseObjects)),
+		"X-Result-Count": strconv.Itoa(len(responseObjects)),
+		"X-Total-Count":  strconv.Itoa(total),
 	}
 
 	if !req.HealthRequest {
