@@ -620,6 +620,18 @@ func BuildSelectFromParms(resourceName string, queryValues url.Values) (query st
 				}
 			}
 
+		case "filter":
+			whereSQL, filterArgs, err := GenerateCombinedFilterQuery("tmf_object", "content", values)
+			if err != nil {
+				return "", nil, 0, 0, err
+			}
+			if whereSQL != "" {
+				queryBuilder.Render(" AND ", whereSQL)
+				for _, v := range filterArgs {
+					args = append(args, v)
+				}
+			}
+
 		case "seller", "buyer":
 			// A shortcut for DOME and ISBE, to simplify life to applications (but can be also done in a TMF-compliant way).
 			// Special processing to allow specifying multiple values in the form 'seller=id1,id2,id3'.

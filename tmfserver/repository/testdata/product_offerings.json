@@ -1,0 +1,1274 @@
+[
+    {
+        "id": "urn:ngsi-ld:product-offering:cd390626-e57e-41e7-b575-7c6d9f71a2ef",
+        "href": "urn:ngsi-ld:product-offering:cd390626-e57e-41e7-b575-7c6d9f71a2ef",
+        "description": "Introducing our advanced Gas Emission Monitoring Service at BEIA, featuring cutting-edge sensors like PM1, PM2.5, and PM10. Our service provides real-time monitoring and precise measurement of particulate matter, ensuring accurate data on air quality, which you can see on GRAFANA. Designed for both industrial and environmental applications, our system helps you maintain regulatory compliance and promotes a healthier, safer environment. Trust BEIA for reliable and efficient air quality monitoring solutions.",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:51.349417411Z",
+        "lifecycleStatus": "Launched",
+        "name": "Gas Emission Monitoring IoT",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            },
+            {
+                "id": "urn:ngsi-ld:category:f67baeef-6ee8-449a-81d6-0692009f859f",
+                "href": "urn:ngsi-ld:category:f67baeef-6ee8-449a-81d6-0692009f859f",
+                "name": "Networking and Content Delivery"
+            },
+            {
+                "id": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "href": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "name": "Data (DaaS)"
+            },
+            {
+                "id": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "href": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "name": "Software Services"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:a5d7ca53-5c40-41a8-872d-adc9eddb5c4e",
+                "href": "urn:ngsi-ld:product-offering-price:a5d7ca53-5c40-41a8-872d-adc9eddb5c4e",
+                "name": "Recurring Payment"
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:0728b203-21e7-417f-b04f-50c48159e42c",
+            "href": "urn:ngsi-ld:product-specification:0728b203-21e7-417f-b04f-50c48159e42c",
+            "name": "Gas Emission Monitoring ",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-26T10:34:48.171Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                "name": "VATRO-1572582",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:f4b1fd69-eb0e-41b2-a20a-d1047ba14ddb",
+        "href": "urn:ngsi-ld:product-offering:f4b1fd69-eb0e-41b2-a20a-d1047ba14ddb",
+        "description": "Voting enables shareholders to participate in key company decisions from anywhere in the world, using any device. Whether it's electing board members, approving mergers, or making pivotal strategic decisions, our platform ensures that every voice is heard loud and clear. With features like anonymous voting, real-time results, and encrypted security, Voting is not just a tool; it's a movement towards a more inclusive and democratic corporate environment.\n\nContact us at sales@beia.ro",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:51.572492607Z",
+        "lifecycleStatus": "Launched",
+        "name": "Voting Platform",
+        "version": "5.0",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:93d5dcc9-1773-4dba-9519-ce3f247d540d",
+                "href": "urn:ngsi-ld:category:93d5dcc9-1773-4dba-9519-ce3f247d540d",
+                "name": "Professional"
+            },
+            {
+                "id": "urn:ngsi-ld:category:4bd5037e-8ce7-4205-80a8-5e66bcd1b42f",
+                "href": "urn:ngsi-ld:category:4bd5037e-8ce7-4205-80a8-5e66bcd1b42f",
+                "name": "Managed Services"
+            },
+            {
+                "id": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "href": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "name": "Data (DaaS)"
+            },
+            {
+                "id": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "href": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "name": "Software Services"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:e9d9cf6f-b9f7-4254-a0a2-2ac696fd5f1c",
+                "href": "urn:ngsi-ld:product-offering-price:e9d9cf6f-b9f7-4254-a0a2-2ac696fd5f1c",
+                "name": "Fee per voting session",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "per session "
+                },
+                "validFor": {
+                    "startDateTime": "2024-12-04T12:40:34.335Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:30:08.719202819Z",
+                "priceType": "custom",
+                "description": "Each voting session will incur a fee of 5500 Euro.",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                        "name": "VATRO-1572582",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            },
+            {
+                "description": "Sessions",
+                "name": "License"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:a941a1cb-0c23-4527-a008-3ec6e2701073",
+            "href": "urn:ngsi-ld:product-specification:a941a1cb-0c23-4527-a008-3ec6e2701073",
+            "name": "Voting",
+            "version": "5.0"
+        },
+        "validFor": {
+            "startDateTime": "2024-12-04T12:40:34.084Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                "name": "VATRO-1572582",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:1f835fe9-2527-4579-9609-24858cdb4b8e",
+        "href": "urn:ngsi-ld:product-offering:1f835fe9-2527-4579-9609-24858cdb4b8e",
+        "description": "Enterprise private cloud infrastructure\n\n\n[get in touch with us](mailto:info-dhub@eng.it) \n\nYour suite of secure intelligent Google applications for cloud-native and multi-devices for productivity and collaboration.\n\n\n[who we are](https://www.eng.it/find-us/offices-contacts)",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:51.040702969Z",
+        "lifecycleStatus": "Obsolete",
+        "name": "Google Workspace",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:bef19bad-b7fd-46d8-a7ee-f2beb279aeaf",
+                "href": "urn:ngsi-ld:category:bef19bad-b7fd-46d8-a7ee-f2beb279aeaf",
+                "name": "Engineering D.HUB S.p.A"
+            },
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:b0c68ad7-f128-49b1-be5e-ea429fe9a0e7",
+                "href": "urn:ngsi-ld:product-offering-price:b0c68ad7-f128-49b1-be5e-ea429fe9a0e7",
+                "name": "Enterprise",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-15T11:26:55.268Z"
+                },
+                "lastUpdate": "2026-03-31T10:29:52.405010263Z",
+                "priceType": "custom",
+                "description": "Premium office suite with advanced features and controls\n\n- Video meetings of 250 participants + recording, monitoring of participations, noise elimination, live streaming within the domain\n- Unlimited storage space",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c",
+                        "name": "VATIT-12622480155",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:fa1f3ed3-4e1c-4e9a-9af1-c3d5776409d6",
+                "href": "urn:ngsi-ld:product-offering-price:fa1f3ed3-4e1c-4e9a-9af1-c3d5776409d6",
+                "name": "Business Plus",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-15T11:26:55.270Z"
+                },
+                "lastUpdate": "2026-03-31T10:29:55.097253620Z",
+                "priceType": "custom",
+                "description": "Suite with more space and better security controls\n\n- Video meetings of 250 participants + recording, monitoring of participations\n- 5TB of cloud storage space per user",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c",
+                        "name": "VATIT-12622480155",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:2f0c90d7-0ada-4b73-9fec-2e852da4ac25",
+                "href": "urn:ngsi-ld:product-offering-price:2f0c90d7-0ada-4b73-9fec-2e852da4ac25",
+                "name": "Business Starter",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-08T11:53:56.005Z"
+                },
+                "lastUpdate": "2026-03-31T10:29:54.560332056Z",
+                "priceType": "custom",
+                "description": "Professional office suite with 30 GB of storage space.\n\n- Video meetings of 100 participants\n- 30 GB of cloud storage space per user",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c",
+                        "name": "VATIT-12622480155",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:dd305ac7-53b4-4a55-ae25-94329ab58667",
+                "href": "urn:ngsi-ld:product-offering-price:dd305ac7-53b4-4a55-ae25-94329ab58667",
+                "name": "Business Standard",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-15T11:26:55.265Z"
+                },
+                "lastUpdate": "2026-03-31T10:29:41.925304521Z",
+                "priceType": "custom",
+                "description": "Optimized office suite with huge storage space\n\n- Video meetings of 150 participants + recording\n- 2TB of cloud storage space per user",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c",
+                        "name": "VATIT-12622480155",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:51c70fb6-514e-48d3-bd70-84f0ab379358",
+            "href": "urn:ngsi-ld:product-specification:51c70fb6-514e-48d3-bd70-84f0ab379358",
+            "name": "Google Workspace",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-15T11:26:55.428Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c",
+                "name": "VATIT-12622480155",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:6142e51d-80e4-4ea4-add2-db3438f7ed5c"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:73a949ac-a492-4de4-a106-35de37261cd2",
+        "href": "urn:ngsi-ld:product-offering:73a949ac-a492-4de4-a106-35de37261cd2",
+        "description": "Nivola PaaS (Platform as a Service) provides computing DB PostgreSQL resources (vCPU, vRAM, HDD) and network with pay-per-use payment and network addressing plan. The backup is included with standard retention of 7 or 14 days It is mandatory to choose 1 maintenance plan from those available: Developer (low priority), Standard (business office time), Premium (H24)\n\n \n [Nivola Web](https://www.nivolapiemonte.it/en/homepage-english/) \n\n \u003Ca href=\"mailto:info@nivolapiemonte.it\"\u003EGet in touch with us\u003C/a\u003E",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:52.861471285Z",
+        "lifecycleStatus": "Launched",
+        "name": "Nivola PaaS (DBaaS PostgreSQL)",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            },
+            {
+                "id": "urn:ngsi-ld:category:ca1a7bea-8435-402d-b182-242915217266",
+                "href": "urn:ngsi-ld:category:ca1a7bea-8435-402d-b182-242915217266",
+                "name": "Databases"
+            },
+            {
+                "id": "urn:ngsi-ld:category:a08118b1-b146-448e-acab-e4cd700af349",
+                "href": "urn:ngsi-ld:category:a08118b1-b146-448e-acab-e4cd700af349",
+                "name": "Public Sector"
+            },
+            {
+                "id": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "href": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "name": "Platform (PaaS)"
+            },
+            {
+                "id": "urn:ngsi-ld:category:2c87a25e-f781-4e56-b4da-04408b8f4cd5",
+                "href": "urn:ngsi-ld:category:2c87a25e-f781-4e56-b4da-04408b8f4cd5",
+                "name": "CSI Piemonte"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:4fce06b2-bb57-4761-ba87-c2ade5616eba",
+                "href": "urn:ngsi-ld:product-offering-price:4fce06b2-bb57-4761-ba87-c2ade5616eba",
+                "name": "1 instance maintenance plan Standard"
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:c29dcb24-5b19-478d-bd8a-1b7cd18e6319",
+                "href": "urn:ngsi-ld:product-offering-price:c29dcb24-5b19-478d-bd8a-1b7cd18e6319",
+                "name": "1 GB Ram PostgreSql "
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:b66bca52-bd5c-4835-b8a3-480873fe8aeb",
+                "href": "urn:ngsi-ld:product-offering-price:b66bca52-bd5c-4835-b8a3-480873fe8aeb",
+                "name": "1 instance maintenance plan Developer"
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:120c771b-7a45-438a-ba68-4f2a5ad07269",
+                "href": "urn:ngsi-ld:product-offering-price:120c771b-7a45-438a-ba68-4f2a5ad07269",
+                "name": "1 CPU PostgreSql ",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-03T09:12:14.825Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:32.363027363Z",
+                "priceType": "custom",
+                "description": "1 CPU PostgreSql Enterprise in PaaS",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:42065f59-c08a-4523-b848-85f778079f3e",
+                "href": "urn:ngsi-ld:product-offering-price:42065f59-c08a-4523-b848-85f778079f3e",
+                "name": "1 instance maintenance plan Premium",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-03T09:12:14.902Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:40.770264728Z",
+                "priceType": "custom",
+                "description": "1 instance maintenance plan Developer. It is mandatory to choose 1 maintenance plan from those available: Developer (low priority), Standard (business office time), Premium (H24)",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:c361450e-adbc-463e-a770-8e098e0cd60a",
+                "href": "urn:ngsi-ld:product-offering-price:c361450e-adbc-463e-a770-8e098e0cd60a",
+                "name": "1 GB Storage PostgreSql",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-03T09:12:14.849Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:37.536280894Z",
+                "priceType": "custom",
+                "description": "1 GB Storage PostgreSql in PaaS",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:4b3ade6b-61a7-427a-9a35-aa5c29102519",
+            "href": "urn:ngsi-ld:product-specification:4b3ade6b-61a7-427a-9a35-aa5c29102519",
+            "name": "PaaS (DBaaS)",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-12-11T12:32:39.262Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                "name": "VATIT-01995120019",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:2825967d-0565-442e-a5d9-df9d3df2f5df",
+        "href": "urn:ngsi-ld:product-offering:2825967d-0565-442e-a5d9-df9d3df2f5df",
+        "description": "Our BEIA state-of-the-art Radon Radiation Measuring System is designed to monitor and measure radon gas levels and display the energy spectrum from the source. This system provides accurate, real-time data on radon concentrations displayed in a user-friendly interface - GRAFANA.  We aim to ensure safety and compliance with health standards. \nIdeal for homes, offices, and industrial settings, it helps in the early detection of radon, reducing the risk of long-term exposure and promoting a healthier living and working environment.",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:51.786344169Z",
+        "lifecycleStatus": "Launched",
+        "name": "Radon Radiation Measuring IoT",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "href": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "name": "Data (DaaS)"
+            },
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            },
+            {
+                "id": "urn:ngsi-ld:category:f67baeef-6ee8-449a-81d6-0692009f859f",
+                "href": "urn:ngsi-ld:category:f67baeef-6ee8-449a-81d6-0692009f859f",
+                "name": "Networking and Content Delivery"
+            },
+            {
+                "id": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "href": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "name": "Software Services"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:be970ce1-fe49-43c8-8dd4-2c71be764c97",
+                "href": "urn:ngsi-ld:product-offering-price:be970ce1-fe49-43c8-8dd4-2c71be764c97",
+                "name": "Recurring Payment",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-26T13:23:40.586Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:30:02.295769022Z",
+                "priceType": "custom",
+                "description": "This services requires a recurring payment, once a year. ",
+                "recurringChargePeriodType": "YEARLY",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                        "name": "VATRO-1572582",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:02c32129-23d0-466d-831b-2bebbf7134e3",
+            "href": "urn:ngsi-ld:product-specification:02c32129-23d0-466d-831b-2bebbf7134e3",
+            "name": "Radon Radiation Monitoring",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-26T13:23:48.037Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                "name": "VATRO-1572582",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:4de370e0-fba8-4d49-95eb-013ebc5eb7b5",
+        "href": "urn:ngsi-ld:product-offering:4de370e0-fba8-4d49-95eb-013ebc5eb7b5",
+        "description": "Our User License for the Voice + Email Package provides a sophisticated and integrated solution for managing your business's voice and email communications. By combining advanced voice features with powerful email tools, this cloud-based package ensures that your team can efficiently handle all communication channels from a single platform. The inclusion of customizable email templates, unlimited email addresses, and automated email allocation enhances productivity and ensures that customer interactions are handled with precision.",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:53.348858418Z",
+        "lifecycleStatus": "Launched",
+        "name": "User license for the Voice + Email package",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:93d5dcc9-1773-4dba-9519-ce3f247d540d",
+                "href": "urn:ngsi-ld:category:93d5dcc9-1773-4dba-9519-ce3f247d540d",
+                "name": "Professional"
+            },
+            {
+                "id": "urn:ngsi-ld:category:4bd5037e-8ce7-4205-80a8-5e66bcd1b42f",
+                "href": "urn:ngsi-ld:category:4bd5037e-8ce7-4205-80a8-5e66bcd1b42f",
+                "name": "Managed Services"
+            },
+            {
+                "id": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "href": "urn:ngsi-ld:category:bbbe8ca9-a4ec-4df0-9be0-c1c6704ffa2d",
+                "name": "Software Services"
+            },
+            {
+                "id": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "href": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "name": "Platform (PaaS)"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:ab6bc29e-eb76-4d85-9b68-cf4d5d2c3f06",
+                "href": "urn:ngsi-ld:product-offering-price:ab6bc29e-eb76-4d85-9b68-cf4d5d2c3f06",
+                "name": "User license for the Voice + Email package",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-30T09:34:17.828Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:30:00.591493623Z",
+                "priceType": "custom",
+                "description": "This service need a monthly payment.",
+                "recurringChargePeriodType": "MONTHLY",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                        "name": "VATRO-1572582",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:1b2e3ac1-43e2-44f1-8b6d-de77f4dc37a1",
+            "href": "urn:ngsi-ld:product-specification:1b2e3ac1-43e2-44f1-8b6d-de77f4dc37a1",
+            "name": "User license for the Voice + Email package",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-30T09:35:11.429Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017",
+                "name": "VATRO-1572582",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:a15739a5-976f-4cee-afa4-57e03f444017"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:13a0a99b-c75b-4502-8352-804ba7f95475",
+        "href": "urn:ngsi-ld:product-offering:13a0a99b-c75b-4502-8352-804ba7f95475",
+        "description": "Nivola is the cloud of CSI.\nNivola PaaS (Platform as a Service) provides computing DB resources (vCPU, vRAM, HDD) and network with pay-per-use payment and network addressing plan .\nThe backup is included with standard retention of  7 or 14 days\nIt is necessary to choose a maintenance plan from those available: Developer, Standard (business office time), Premium (H24)\n\n\n [Nivola Web](https://www.nivolapiemonte.it/en/homepage-english/) \n\n \u003Ca href=\"mailto:info@nivolapiemonte.it\"\u003EGet in touch with us\u003C/a\u003E",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:52.061405317Z",
+        "lifecycleStatus": "Launched",
+        "name": "Nivola PaaS (DBaaS Oracle)",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:a08118b1-b146-448e-acab-e4cd700af349",
+                "href": "urn:ngsi-ld:category:a08118b1-b146-448e-acab-e4cd700af349",
+                "name": "Public Sector"
+            },
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            },
+            {
+                "id": "urn:ngsi-ld:category:ca1a7bea-8435-402d-b182-242915217266",
+                "href": "urn:ngsi-ld:category:ca1a7bea-8435-402d-b182-242915217266",
+                "name": "Databases"
+            },
+            {
+                "id": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "href": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "name": "Platform (PaaS)"
+            },
+            {
+                "id": "urn:ngsi-ld:category:2c87a25e-f781-4e56-b4da-04408b8f4cd5",
+                "href": "urn:ngsi-ld:category:2c87a25e-f781-4e56-b4da-04408b8f4cd5",
+                "name": "CSI Piemonte"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:0512f197-9e3b-4fb0-9526-af003f23185f",
+                "href": "urn:ngsi-ld:product-offering-price:0512f197-9e3b-4fb0-9526-af003f23185f",
+                "name": "1 CPU Oracle  Enterprise",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-02T10:28:52.565Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:19.750217082Z",
+                "priceType": "custom",
+                "description": "1 CPU Oracle  Enterprise in PaaS",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:fd3f39a8-88f2-47af-9ab7-aac45d659dd9",
+                "href": "urn:ngsi-ld:product-offering-price:fd3f39a8-88f2-47af-9ab7-aac45d659dd9",
+                "name": "1 GB Ram Oracle Enterprise",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-02T10:28:52.567Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:17.772202337Z",
+                "priceType": "custom",
+                "description": "1 GB Ram Oracle Enterprise",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:825ae2b8-83da-4bb6-8996-1b9ed373104a",
+                "href": "urn:ngsi-ld:product-offering-price:825ae2b8-83da-4bb6-8996-1b9ed373104a",
+                "name": "1 instance maintenance plan Standard",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-02T10:28:52.571Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:18.325289559Z",
+                "priceType": "custom",
+                "description": "1 instance maintenance plan Standard. \nIt is mandatory  to choose 1 maintenance plan from those available: Developer (low priority), Standard (business office time), Premium (H24)",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:fe5c5f72-2635-49fe-a131-d5132f79ad46",
+                "href": "urn:ngsi-ld:product-offering-price:fe5c5f72-2635-49fe-a131-d5132f79ad46",
+                "name": "1 instance maintenance plan Developer",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-02T10:28:52.570Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:19.354109346Z",
+                "priceType": "custom",
+                "description": "1 instance maintenance plan Developer. \nIt is mandatory  to choose 1 maintenance plan from those available: Developer (low priority), Standard (business office time), Premium (H24)",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:6f29c58d-29e1-4cc7-af45-d90bf933333e",
+                "href": "urn:ngsi-ld:product-offering-price:6f29c58d-29e1-4cc7-af45-d90bf933333e",
+                "name": "1 instance maintenance plan Premium",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-02T10:28:52.577Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:18.917387354Z",
+                "priceType": "custom",
+                "description": "1 instance maintenance plan Premium. \nIt is mandatory  to choose 1 maintenance plan from those available: Developer (low priority), Standard (business office time), Premium (H24)",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            },
+            {
+                "id": "urn:ngsi-ld:product-offering-price:53a639cb-6c4e-4d65-a76d-555004617665",
+                "href": "urn:ngsi-ld:product-offering-price:53a639cb-6c4e-4d65-a76d-555004617665",
+                "name": "1 GB Storage Dbms Oracle Enterprise",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "unitOfMeasure": {
+                    "amount": 1,
+                    "units": "year"
+                },
+                "validFor": {
+                    "startDateTime": "2024-07-02T10:28:52.568Z"
+                },
+                "price": {
+                    "unit": "EUR"
+                },
+                "lastUpdate": "2026-03-31T10:29:17.252308497Z",
+                "priceType": "custom",
+                "description": "1 GB Storage Dbms Oracle Enterprise",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                        "name": "VATIT-01995120019",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:4b3ade6b-61a7-427a-9a35-aa5c29102519",
+            "href": "urn:ngsi-ld:product-specification:4b3ade6b-61a7-427a-9a35-aa5c29102519",
+            "name": "PaaS (DBaaS)",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-12-11T12:32:06.485Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5",
+                "name": "VATIT-01995120019",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:9a658fbf-aa4a-49bc-bb7d-2103bcdc4aa5"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:48c7f488-6aa2-4c8c-a2f9-5b8aba8fb616",
+        "href": "urn:ngsi-ld:product-offering:48c7f488-6aa2-4c8c-a2f9-5b8aba8fb616",
+        "description": "A web service that provides IoT coverage data in a locality based on the historical positions of IoT devices.\n\n[get in touch with us](mailto:info@digitanimal.com)\n\n[who we are](https://digitanimal.com/?lang=en)",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:52.407940928Z",
+        "lifecycleStatus": "Launched",
+        "name": "IoT Coverage",
+        "version": "0.1",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:509e95fb-f1b5-4da0-91bf-68854a1eec60",
+                "href": "urn:ngsi-ld:category:509e95fb-f1b5-4da0-91bf-68854a1eec60",
+                "name": "Agriculture"
+            },
+            {
+                "id": "urn:ngsi-ld:category:70e573d5-dbe5-4f47-ab8a-30ad01263edd",
+                "href": "urn:ngsi-ld:category:70e573d5-dbe5-4f47-ab8a-30ad01263edd",
+                "name": "Data and AI"
+            },
+            {
+                "id": "urn:ngsi-ld:category:ac997289-76fa-4323-8b62-31202c06ba61",
+                "href": "urn:ngsi-ld:category:ac997289-76fa-4323-8b62-31202c06ba61",
+                "name": "Artificial Intelligence and Machine Learning"
+            },
+            {
+                "id": "urn:ngsi-ld:category:5dfc1141-5472-4230-97b0-419774696dd5",
+                "href": "urn:ngsi-ld:category:5dfc1141-5472-4230-97b0-419774696dd5",
+                "name": "digitanimal"
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:7406563a-76f9-4c07-a99c-bd52babc34da",
+            "href": "urn:ngsi-ld:product-specification:7406563a-76f9-4c07-a99c-bd52babc34da",
+            "name": "IoT Coverage",
+            "version": "0.1"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-15T15:05:31.235Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:816448f3-3d67-4bac-8649-ee0e6c5cc878",
+                "name": "VATES-B87307609",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:816448f3-3d67-4bac-8649-ee0e6c5cc878"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:17e4bfb5-8c36-4cc3-bcb1-b4b02c33359d",
+        "href": "urn:ngsi-ld:product-offering:17e4bfb5-8c36-4cc3-bcb1-b4b02c33359d",
+        "description": "[CloudFerro Cloud](https://cloudferro.com/#cloud) provides innovative cloud services for specialized markets such as the European space sector, climate research and science.\n\n[Get in touch with us](https://cloudferro.com/contact)\n",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:52.666289252Z",
+        "lifecycleStatus": "Launched",
+        "name": "CloudFerro Cloud",
+        "version": "1.0",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:509e95fb-f1b5-4da0-91bf-68854a1eec60",
+                "href": "urn:ngsi-ld:category:509e95fb-f1b5-4da0-91bf-68854a1eec60",
+                "name": "Agriculture"
+            },
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            },
+            {
+                "id": "urn:ngsi-ld:category:f519d857-b681-4e89-b009-c7dfa178ebfc",
+                "href": "urn:ngsi-ld:category:f519d857-b681-4e89-b009-c7dfa178ebfc",
+                "name": "Storage and Data Persistence"
+            },
+            {
+                "id": "urn:ngsi-ld:category:b94a200e-534c-4861-bb41-b03d57fc2b64",
+                "href": "urn:ngsi-ld:category:b94a200e-534c-4861-bb41-b03d57fc2b64",
+                "name": "CloudFerro"
+            },
+            {
+                "id": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "href": "urn:ngsi-ld:category:73720e4b-7d7a-42db-a65c-1a4113d1a0af",
+                "name": "Data (DaaS)"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:c31e9584-24df-4768-86ba-3ea10145f7ff",
+                "href": "urn:ngsi-ld:product-offering-price:c31e9584-24df-4768-86ba-3ea10145f7ff",
+                "name": "CloudFerro pricing plans"
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            },
+            {
+                "description": "You can find CloudFerro Terms & Conditions [here](https://cloudferro.com/terms-and-conditions)",
+                "name": "License"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:0c26e753-cd7e-4374-a227-916c44d048ca",
+            "href": "urn:ngsi-ld:product-specification:0c26e753-cd7e-4374-a227-916c44d048ca",
+            "name": "CloudFerro Cloud",
+            "version": "1.0"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-18T09:52:18.317Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:0f78a04d-41b4-4004-8cd9-3b2bf93b3dcb",
+                "name": "VATPL-7010468205",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:0f78a04d-41b4-4004-8cd9-3b2bf93b3dcb"
+            }
+        ]
+    },
+    {
+        "id": "urn:ngsi-ld:product-offering:53721bda-431a-4566-995b-0b33ea020ddc",
+        "href": "urn:ngsi-ld:product-offering:53721bda-431a-4566-995b-0b33ea020ddc",
+        "description": "The Libelium IoT solution for Smart Parking is based on sensors that detect the availability of indoor and outdoor parking with the combination of 2 detection systems: **Radar** and **Magnetic**, which provides higher accuracy and better performance and stability. Other features are:\n\n- Robust waterproof IP68 and IK10 enclosure. The device is protected inside a small and extremely tough enclosure. It is IP68 rated, which means it remains waterproof even submerged in water. Resistant to tampering and vandalism. It is certified for IK10, the maximum rating for external mechanical impacts. Wide range of temperature: -20ºC to 65ºC.\n- Battery life. A low-consumption electronic design and a high-capacity battery (10,400 mAh) allow more than 10 years of uninterrupted operation (it depends on parameters such as the distance to the Base Station or the number of packets sent per day).\n- Almost zero maintenance is needed. Devices are not affected by dirt, dust, rain or oil spills.\n- Two ways of installation: on surface and semi-buried.\n- LoRaWAN communication protocol.\n\nThe Smart Parking solution reduces stress for visitors when searching for available spaces. It also enables cities to monitor and manage parking spaces, improve traffic flow and increase city revenue. This information is a very helpful tool for enforcement officers. They are able to go directly to the occupied places to verify that they have paid for the parking and make sure that the places for the disabled are occupied by vehicles authorized to do so.",
+        "isBundle": false,
+        "lastUpdate": "2026-07-07T14:18:53.094855196Z",
+        "lifecycleStatus": "Launched",
+        "name": "Smart Parking - by Libelium",
+        "version": "1.0",
+        "category": [
+            {
+                "id": "urn:ngsi-ld:category:4f2de515-91ec-4902-88fd-388fcacdb385",
+                "href": "urn:ngsi-ld:category:4f2de515-91ec-4902-88fd-388fcacdb385",
+                "name": "Libelium"
+            },
+            {
+                "id": "urn:ngsi-ld:category:37cc8b7f-8875-41e1-94e7-7fbb5117553d",
+                "href": "urn:ngsi-ld:category:37cc8b7f-8875-41e1-94e7-7fbb5117553d",
+                "name": "Transportation"
+            },
+            {
+                "id": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "href": "urn:ngsi-ld:category:86836789-af84-4ca0-98f6-ee923f22d98d",
+                "name": "Infrastructure"
+            },
+            {
+                "id": "urn:ngsi-ld:category:f67baeef-6ee8-449a-81d6-0692009f859f",
+                "href": "urn:ngsi-ld:category:f67baeef-6ee8-449a-81d6-0692009f859f",
+                "name": "Networking and Content Delivery"
+            },
+            {
+                "id": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "href": "urn:ngsi-ld:category:7757a469-708e-4f8e-838e-b881e410712f",
+                "name": "Platform (PaaS)"
+            }
+        ],
+        "productOfferingPrice": [
+            {
+                "id": "urn:ngsi-ld:product-offering-price:b8211c86-16f2-4cd5-9b36-c3013e79f6b7",
+                "href": "urn:ngsi-ld:product-offering-price:b8211c86-16f2-4cd5-9b36-c3013e79f6b7",
+                "name": "Project-based",
+                "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+                "lifecycleStatus": "Active",
+                "validFor": {
+                    "startDateTime": "2024-07-04T12:09:09.636Z"
+                },
+                "lastUpdate": "2026-03-31T10:29:44.401613393Z",
+                "priceType": "custom",
+                "description": "If you need advice to carry out your project, please contact us at sales@libelium.com. Our experts will gather your requirements and lead you to the next level.",
+                "relatedParty": [
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                        "name": "did:elsi:VATSB-12345678J",
+                        "role": "SellerOperator",
+                        "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+                    },
+                    {
+                        "@referredType": "Organization",
+                        "href": "urn:ngsi-ld:organization:85095929-ab35-44ab-b763-c20c1316e1fc",
+                        "name": "VATES-B73816589",
+                        "role": "Seller",
+                        "id": "urn:ngsi-ld:organization:85095929-ab35-44ab-b763-c20c1316e1fc"
+                    }
+                ]
+            }
+        ],
+        "productOfferingTerm": [
+            {
+                "description": "manual",
+                "name": "procurement"
+            }
+        ],
+        "productSpecification": {
+            "id": "urn:ngsi-ld:product-specification:8c75df7c-e71e-405d-bf67-37dbab592d61",
+            "href": "urn:ngsi-ld:product-specification:8c75df7c-e71e-405d-bf67-37dbab592d61",
+            "name": "Smart Parking",
+            "version": "1.0"
+        },
+        "validFor": {
+            "startDateTime": "2024-07-05T16:02:19.717Z"
+        },
+        "@schemaLocation": "https://raw.githubusercontent.com/DOME-Marketplace/tmf-api/refs/heads/main/DOME/ShareableEntity.schema.json",
+        "relatedParty": [
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9",
+                "name": "did:elsi:VATSB-12345678J",
+                "role": "SellerOperator",
+                "id": "urn:ngsi-ld:organization:545c3a70-9c5c-44d4-ba6e-ec3e51519ab9"
+            },
+            {
+                "@referredType": "Organization",
+                "href": "urn:ngsi-ld:organization:85095929-ab35-44ab-b763-c20c1316e1fc",
+                "name": "VATES-B73816589",
+                "role": "Seller",
+                "id": "urn:ngsi-ld:organization:85095929-ab35-44ab-b763-c20c1316e1fc"
+            }
+        ]
+    }
+]
