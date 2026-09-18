@@ -53,12 +53,22 @@ func (svc *Service) RetrieveAll(ctx context.Context) error {
 		userOffset := 0
 
 		// Retrieve objects
-		receivedObjects, _, _, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset)
+		receivedObjects, _, validationResults, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset)
 		if err != nil {
 			slog.Error("Failed to retrieve objects", "error", err, "resource", resource)
 			continue
 		}
 		totalNumber += len(receivedObjects)
+
+		if len(validationResults) > 0 {
+			// Iterate through validation results and print the errors
+			for _, vr := range validationResults {
+				// Print a useful message for each validation error
+				for _, valError := range vr.Errors {
+					slog.Error("Validation error", "type", vr.ObjectType, "id", vr.ObjectID, "field", valError.Field, "message", valError.Message, "code", valError.Code)
+				}
+			}
+		}
 
 	}
 
