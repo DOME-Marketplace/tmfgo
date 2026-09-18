@@ -3,21 +3,25 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/url"
 	"strconv"
 	"time"
 
+	"github.com/hesusruiz/tmforum/config"
 	"github.com/hesusruiz/tmforum/internal/errl"
 	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
 	"github.com/hesusruiz/tmforum/types"
 )
 
+const defaultDeleteInvalid = true
+
 func (svc *Service) ScheduleRetrieveAll() {
 	go func() {
 		for {
 			// Retrieve all public resources at the beginning and every 15 minutes
-			err := svc.RetrieveAll(context.Background())
+			err := svc.RetrieveAll(context.Background(), defaultDeleteInvalid)
 			if err != nil {
 				slog.Error("failed to retrieve all product offerings", "error", err)
 			}
@@ -27,9 +31,17 @@ func (svc *Service) ScheduleRetrieveAll() {
 }
 
 // RetrieveAll retrieves all TMF objects of a given type.
-func (svc *Service) RetrieveAll(ctx context.Context) error {
+func (svc *Service) RetrieveAll(ctx context.Context, deleteInvalid bool) error {
 
 	totalNumber := 0
+	totalInvalidObjects := 0
+
+	type counts struct {
+		valid   int
+		invalid int
+	}
+
+	summaryCounts := make(map[string]counts)
 
 	publicResources := types.GetPublicResources()
 	for _, resource := range publicResources {
@@ -46,38 +58,87 @@ func (svc *Service) RetrieveAll(ctx context.Context) error {
 			},
 		}
 
-		slog.Info("RetrieveAll", "resource", resource)
+		slog.Info("Retrieve All", "resource", resource)
 
 		// Parse pagination parameters
 		userLimit := 10000
 		userOffset := 0
 
 		// Retrieve objects
-		receivedObjects, _, validationResults, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset)
+		receivedObjects, _, invalidObjects, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset, deleteInvalid)
 		if err != nil {
 			slog.Error("Failed to retrieve objects", "error", err, "resource", resource)
 			continue
 		}
-		totalNumber += len(receivedObjects)
 
-		if len(validationResults) > 0 {
+		if len(invalidObjects) == 0 {
+			slog.Info("Retrieved objects", "resourceName", resource, "valid", len(receivedObjects))
+		} else {
+			slog.Error("Retrieved objects", "resourceName", resource, "valid", len(receivedObjects), "invalid", len(invalidObjects))
+		}
+
+		summaryCounts[resource] = counts{
+			valid:   len(receivedObjects),
+			invalid: len(invalidObjects),
+		}
+		totalNumber += len(receivedObjects)
+		totalInvalidObjects += len(invalidObjects)
+
+		if len(invalidObjects) > 0 {
+
 			// Iterate through validation results and print the errors
-			for _, vr := range validationResults {
-				// Print a useful message for each validation error
-				for _, valError := range vr.Errors {
-					slog.Error("Validation error", "type", vr.ObjectType, "id", vr.ObjectID, "field", valError.Field, "message", valError.Message, "code", valError.Code)
+			for _, vr := range invalidObjects {
+
+				// Delete the offending object if deleteInvalid is true
+				if deleteInvalid && resource != types.Category {
+					pathPrefix, err := config.ExternalUpstreamTMFPath(req.ResourceName)
+					if err != nil {
+						slog.Error("failed to get path prefix", "error", err, "resourceName", req.ResourceName)
+						continue
+					}
+					path := fmt.Sprintf("%s/%s", pathPrefix, vr.ObjectID)
+
+					upstreamHeaders := map[string]string{
+						"Authorization": "Bearer " + req.AuthUser.AccessToken,
+						"Accept":        "application/json",
+						"Content-Type":  "application/json",
+					}
+
+					fmt.Printf("##### Deleting invalid object: %s %s\n", req.ResourceName, vr.ObjectID)
+
+					resp, _, err := svc.tmfClient.Delete(ctx, path, upstreamHeaders)
+					if err != nil || resp.StatusCode >= 300 {
+						slog.Error("failed to delete invalid object", "error", err, "status_code", resp.StatusCode, "path", path)
+					}
+
+					// Print a useful message for each validation error
+					for _, valError := range vr.Errors {
+						fmt.Printf("    Reason: %s %s %s\n", valError.Field, valError.Message, valError.Code)
+					}
+
+				} else {
+
+					fmt.Printf("##### Invalid object not deleted: %s %s\n", req.ResourceName, vr.ObjectID)
+
+					// Print a useful message for each validation error
+					for _, valError := range vr.Errors {
+						fmt.Printf("    Reason: %s %s %s\n", valError.Field, valError.Message, valError.Code)
+					}
 				}
 			}
 		}
 
 	}
 
-	slog.Info("Retrieved", "totalNumber", totalNumber)
+	slog.Info("Retrieved All", "valid", totalNumber, "invalid", totalInvalidObjects)
+	for resource, c := range summaryCounts {
+		fmt.Printf("%s valid: %d, invalid: %d\n", resource, c.valid, c.invalid)
+	}
 
 	return nil
 }
 
-func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, userLimit, userOffset int) (
+func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, userLimit, userOffset int, deleteInvalid bool) (
 	responseObjects []repo.TMFObjectMap, responseHeaders map[string]string, diagnosticObjects []repo.ValidationResult, err error) {
 
 	// Delete the attribute selection for the query to the upstream server. We will receive full objects and
@@ -93,7 +154,7 @@ func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, u
 
 	// Check if the user wants diagnostic information, which is specified in the query string as '?diagnostic=true'
 	// This is not standard TMF, we use it to report on quality of data
-	diagnostic := true
+	diagnostic := false
 
 	responseObjects = make([]repo.TMFObjectMap, 0)
 	diagnosticObjects = make([]repo.ValidationResult, 0)
@@ -137,6 +198,8 @@ func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, u
 
 			// Perform validations on the received object
 			validations := receivedObject.Validate(req.ResourceName)
+
+			// If errors, record them and continue with next object
 			if len(validations.Errors) > 0 {
 				invalidObjects++
 				diagnosticObjects = append(diagnosticObjects, validations)
@@ -144,24 +207,6 @@ func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, u
 					receivedObject["validationErrors"] = validations.Errors
 					responseObjects = append(responseObjects, receivedObject)
 				}
-
-				// // Delete the offending object if we are not in production
-				// if svc.environment != config.DOME_PRO {
-				// 	pathPrefix, err := config.ExternalUpstreamTMFPath(req.ResourceName)
-				// 	if err != nil {
-				// 		slog.Error("failed to get path prefix", "error", err, "resourceName", req.ResourceName)
-				// 		continue
-				// 	}
-				// 	path := fmt.Sprintf("%s/%s", pathPrefix, receivedObject.ID())
-
-				// 	resp, _, err := svc.tmfClient.Delete(ctx, path, upstreamHeaders)
-				// 	if err != nil || resp.StatusCode >= 300 {
-				// 		slog.Error("failed to delete invalid object", "error", err, "status_code", resp.StatusCode, "path", path)
-				// 		continue
-				// 	}
-
-				// 	slog.Info("Invalid object deleted", "resourceName", req.ResourceName, "id", receivedObject.ID())
-				// }
 
 				continue
 			}
@@ -200,10 +245,6 @@ func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, u
 	responseHeaders = map[string]string{
 		"X-Result-Count": strconv.Itoa(len(responseObjects)),
 		"X-Total-Count":  strconv.Itoa(remoteTotalObjects),
-	}
-
-	if !req.HealthRequest {
-		slog.Info("Remote objects listed", slog.Int("valid", len(responseObjects)), slog.Int("invalid", invalidObjects), slog.String("resourceName", req.ResourceName))
 	}
 
 	return responseObjects, responseHeaders, diagnosticObjects, nil

@@ -119,7 +119,7 @@ func init() {
 	// }
 
 	go func() {
-		err := runNormalProcess(LocalConfig)
+		err := runNormalProcess(LocalConfig, false)
 		if err != nil {
 			panic(err)
 		}
