@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag" // Added
 	"fmt"
 	"os"
@@ -33,6 +34,7 @@ func main() {
 	var init bool
 	var environment string
 	var restartHour, restartMinute int
+	var deleteInvalid bool
 
 	envHelp := fmt.Sprintf("Environment where run: %s, %s, %s, %s, %s, %s, %s", config.ISBE_DEV, config.ISBE_PRE, config.ISBE_PRO, config.DOME_DEV, config.DOME_PRE, config.DOME_PRO, config.LOCAL)
 
@@ -42,6 +44,7 @@ func main() {
 	flag.StringVar(&environment, "run", "", envHelp)
 	flag.IntVar(&restartHour, "rh", 3, "Restart program every day at this hour")
 	flag.IntVar(&restartMinute, "rm", 0, "Restart program every day at this minute")
+	flag.BoolVar(&deleteInvalid, "purge", false, "Delete invalid objects")
 	flag.Parse()
 
 	// Configure the slog logger
@@ -100,7 +103,7 @@ func main() {
 		configuration.RestartHour = restartHour
 		configuration.RestartMinute = restartMinute
 
-		err = runNormalProcess(configuration)
+		err = runNormalProcess(configuration, deleteInvalid)
 		if err != nil {
 			slog.Error("failed to run normal process", slog.Any("error", err))
 			os.Exit(1)
@@ -122,7 +125,7 @@ func cleanup(db *repository.DBService) {
 
 // runNormalProcess starts the TMF API server and handles its lifecycle,
 // including database connection, rules engine initialization, and graceful shutdown.
-func runNormalProcess(configuration *config.Config) error {
+func runNormalProcess(configuration *config.Config, deleteInvalid bool) error {
 
 	// Set TABLEFLIP for seamless restarts and upgrades
 	upg, err := tableflip.New(tableflip.Options{
@@ -153,6 +156,14 @@ func runNormalProcess(configuration *config.Config) error {
 	tmfService, err := service.NewTMFService(configuration, dbService, rulesEngine)
 	if err != nil {
 		return errl.Errorf("failed to create service: %w", err)
+	}
+
+	if deleteInvalid {
+		err = tmfService.RetrieveAll(context.Background(), deleteInvalid)
+		if err != nil {
+			return errl.Errorf("failed to retrieve all objects: %w", err)
+		}
+		return nil
 	}
 
 	// Schedule retrieve all
