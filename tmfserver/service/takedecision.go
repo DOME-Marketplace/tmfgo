@@ -57,16 +57,6 @@ func (svc *Service) isServerOperator(user types.AuthUser) bool {
 	return repo.SameOrganizations(user.OrganizationIdentifier, svc.ServerOperatorDid)
 }
 
-func (svc *Service) isTrustedParty(user types.AuthUser) bool {
-	for _, trustedParty := range svc.AdditionalTrustedparties {
-		if repo.SameOrganizations(user.OrganizationIdentifier, trustedParty.Did) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // hardcodedPolicies is the main entry point for pre-PDP policy enforcement.
 // It matches the top-down, operation-first structure and logic of hardcodedPolicies.md:
 // 1. CREATE

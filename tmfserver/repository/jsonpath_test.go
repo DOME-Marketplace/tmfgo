@@ -550,9 +550,10 @@ func loadTestOfferingsDB(t *testing.T) *sql.DB {
 				if rp, ok := rpRaw.(map[string]any); ok {
 					role, _ := rp["role"].(string)
 					name, _ := rp["name"].(string)
-					if role == "Seller" {
+					switch role {
+					case "Seller":
 						seller = name
-					} else if role == "SellerOperator" {
+					case "SellerOperator":
 						sellerOperator = name
 					}
 				}
@@ -658,9 +659,9 @@ func TestJSONPath_ProductOfferings_RealDB(t *testing.T) {
 			mustIncludeID: "urn:ngsi-ld:product-offering:cd390626-e57e-41e7-b575-7c6d9f71a2ef",
 		},
 		{
-			name:          "first relatedParty role SellerOperator",
-			filters:       []string{"relatedParty[0].role == 'SellerOperator'"},
-			wantCount:     10,
+			name:      "first relatedParty role SellerOperator",
+			filters:   []string{"relatedParty[0].role == 'SellerOperator'"},
+			wantCount: 10,
 		},
 		{
 			name:          "second relatedParty name VATRO-1572582",
@@ -940,6 +941,9 @@ func TestJSONPath_BuildSelectFromParms_EndToEnd(t *testing.T) {
 		}
 		results = append(results, r)
 	}
+	if err := rows.Err(); err != nil {
+		t.Fatalf("rows error: %v", err)
+	}
 
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
@@ -1015,5 +1019,3 @@ func TestJSONPath_SelectExpr_Projection(t *testing.T) {
 		t.Errorf("expected ['VATRO-1572582'], got: %v", sellers)
 	}
 }
-
-
