@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 // CreateTMFOpLogTableSQL is the SQL statement to create the table 'tmf_operation_log' and its indexes.

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 )
 
 const createMigrationsTableSQL = `CREATE TABLE IF NOT EXISTS migrations (

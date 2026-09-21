@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/tmfserver/notifications"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/notifications"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 // The DOME implementation has some non-conformances with the TMF specifications, and this is to bypass them.

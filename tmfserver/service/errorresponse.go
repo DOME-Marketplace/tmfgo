@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 )
 
 // ApiError represents a standardized TMForum API error response.

@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"github.com/pb33f/libopenapi"
 	v2 "github.com/pb33f/libopenapi/datamodel/high/v2"
 	"go.yaml.in/yaml/v4"

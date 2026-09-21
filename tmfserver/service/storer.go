@@ -1,8 +1,8 @@
 package service
 
 import (
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/types"
+	repo "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 // Type aliases for errors so other service files can still use them directly

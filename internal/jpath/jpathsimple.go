@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 )
 
 // GetMap returns a map[string]any according to a dotted path or default or map[string]any.

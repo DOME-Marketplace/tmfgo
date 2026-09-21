@@ -1,6 +1,6 @@
 package config
 
-import "github.com/hesusruiz/tmforum/types"
+import "github.com/DOME-Marketplace/tmfgo/types"
 
 // ******************************************************************
 // DOME configurations

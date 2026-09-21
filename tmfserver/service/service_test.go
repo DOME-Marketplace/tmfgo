@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hesusruiz/tmforum/config"
-	pdp "github.com/hesusruiz/tmforum/pdp"
-	"github.com/hesusruiz/tmforum/tmfserver/notifications"
-	"github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/config"
+	pdp "github.com/DOME-Marketplace/tmfgo/pdp"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/notifications"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	_ "github.com/mattn/go-sqlite3"
 )
 

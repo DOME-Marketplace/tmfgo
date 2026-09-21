@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 	"gitlab.com/greyxor/slogor"
 	"golang.org/x/sync/singleflight"
 )

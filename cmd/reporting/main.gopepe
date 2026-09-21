@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/hesusruiz/tmforum/reporting"
+	"github.com/DOME-Marketplace/tmfgo/reporting"
 )
 
 func main() {

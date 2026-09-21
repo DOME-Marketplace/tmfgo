@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log/slog"
 
-	"github.com/hesusruiz/tmforum/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 )
 
 func init() {

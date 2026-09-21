@@ -17,9 +17,9 @@ import (
 	"encoding/json"
 	"log/slog"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	svc "github.com/DOME-Marketplace/tmfgo/tmfserver/service"
 	"github.com/gofiber/fiber/v2"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	svc "github.com/hesusruiz/tmforum/tmfserver/service"
 )
 
 // Handler is the handler for the TMF API (both V4 and V5).

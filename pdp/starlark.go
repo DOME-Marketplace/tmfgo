@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 	starjson "go.starlark.net/lib/json"
 	"go.starlark.net/lib/math"
 	sttime "go.starlark.net/lib/time"

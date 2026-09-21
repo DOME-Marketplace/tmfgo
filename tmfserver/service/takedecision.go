@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/internal/jpath"
-	pdp "github.com/hesusruiz/tmforum/pdp"
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/jpath"
+	pdp "github.com/DOME-Marketplace/tmfgo/pdp"
+	repo "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 // checkAuthorization evaluates access authorization for a TMF request against both hardcoded and user-defined policies.

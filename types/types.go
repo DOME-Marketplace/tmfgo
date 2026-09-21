@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 	"github.com/goccy/go-yaml"
-	"github.com/hesusruiz/tmforum/internal/errl"
 )
 
 type Action struct {

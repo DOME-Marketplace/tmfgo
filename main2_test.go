@@ -23,9 +23,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 const (

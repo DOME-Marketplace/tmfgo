@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 )
 
 // TMFClientConfig holds the configuration for the tmfclient service

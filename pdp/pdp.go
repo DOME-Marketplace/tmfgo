@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/internal/filecache"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/filecache"
 
 	st "go.starlark.net/starlark"
 )

@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/types"
+	repo "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 // ListTMFObjects retrieves all TMF objects of a given type.

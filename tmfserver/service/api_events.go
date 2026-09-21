@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/notifications"
 	"github.com/google/uuid"
-	"github.com/hesusruiz/tmforum/tmfserver/notifications"
 )
 
 // CreateHubSubscription creates a new notification subscription (hub) for an API family.

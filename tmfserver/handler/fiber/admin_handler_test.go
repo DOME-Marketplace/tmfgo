@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/service"
 	"github.com/gofiber/fiber/v2"
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/tmfserver/service"
 )
 
 func createTestAdminApp(adminToken string) (*fiber.App, *AdminHandler) {

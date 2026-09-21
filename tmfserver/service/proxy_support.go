@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	repo "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 )
 
 // createRemoteOrLocalObject creates an object in the remote server and then in the local database, if the proxy is enabled.

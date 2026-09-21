@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 )
 
 // NewTMFRecord creates a new TMFObject in storage format

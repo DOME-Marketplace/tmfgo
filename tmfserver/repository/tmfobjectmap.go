@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/internal/jpath"
-	"github.com/hesusruiz/tmforum/internal/jsone"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/jpath"
+	"github.com/DOME-Marketplace/tmfgo/internal/jsone"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"golang.org/x/exp/slog"
 )
 

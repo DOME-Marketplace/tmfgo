@@ -9,7 +9,7 @@ import (
 	"hash/maphash"
 	"strings"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 	st "go.starlark.net/starlark"
 )
 

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"github.com/goccy/go-yaml"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/types"
 )
 
 // Indicates the environment (SBX, DEV2, PRO, LCL) where the server is running.

@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/jpath"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/internal/jpath"
-	"github.com/hesusruiz/tmforum/types"
 	"gitlab.com/greyxor/slogor"
 )
 

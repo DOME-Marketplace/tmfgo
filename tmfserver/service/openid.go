@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/goccy/go-json"
-	"github.com/hesusruiz/tmforum/internal/errl"
 	"gitlab.com/greyxor/slogor"
 )
 

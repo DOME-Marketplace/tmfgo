@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 func TMFIndividualFromCredential(verifiableCredential map[string]any, user *Organization) (*TMFRecord, error) {

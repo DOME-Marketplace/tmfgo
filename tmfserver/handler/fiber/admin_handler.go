@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/internal/html"
+	"github.com/DOME-Marketplace/tmfgo/internal/sqlogger"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/service"
 	"github.com/goccy/go-yaml"
 	"github.com/gofiber/fiber/v2"
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/internal/html"
-	"github.com/hesusruiz/tmforum/internal/sqlogger"
-	"github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/tmfserver/service"
 )
 
 //go:embed templates/*

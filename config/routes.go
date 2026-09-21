@@ -4,7 +4,7 @@
 
 package config
 
-import "github.com/hesusruiz/tmforum/internal/errl"
+import "github.com/DOME-Marketplace/tmfgo/internal/errl"
 
 var GeneratedDefaultResourceToPathPrefix = map[string]string{
 	"agreement":                  "/tmf-api/agreementManagement/v4/agreement",

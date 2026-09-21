@@ -12,19 +12,19 @@ import (
 
 	"log/slog"
 
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/sqlogger"
+	_ "github.com/DOME-Marketplace/tmfgo/migrations"
+	"github.com/DOME-Marketplace/tmfgo/pdp"
+	fiberhandler "github.com/DOME-Marketplace/tmfgo/tmfserver/handler/fiber"
+	repository "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	service "github.com/DOME-Marketplace/tmfgo/tmfserver/service"
 	"github.com/cloudflare/tableflip"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/internal/sqlogger"
-	_ "github.com/hesusruiz/tmforum/migrations"
-	"github.com/hesusruiz/tmforum/pdp"
-	fiberhandler "github.com/hesusruiz/tmforum/tmfserver/handler/fiber"
-	repository "github.com/hesusruiz/tmforum/tmfserver/repository"
-	service "github.com/hesusruiz/tmforum/tmfserver/service"
 
 	_ "github.com/mattn/go-sqlite3"
 )

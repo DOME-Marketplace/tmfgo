@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/types"
 )
 
 func argsToStrings(args []any) []string {
@@ -813,4 +813,3 @@ func TestGetSummaryOperationLogs(t *testing.T) {
 		t.Errorf("expected 0 logs for page 4, got %d", len(logs))
 	}
 }
-

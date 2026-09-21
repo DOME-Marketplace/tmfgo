@@ -4,10 +4,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/sqlitesync"
 	"github.com/cloudflare/tableflip"
-	"github.com/hesusruiz/tmforum/config"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/sqlitesync"
 )
 
 // ScheduleMaintenance schedules periodic database maintenance tasks like VACUUM or backups.

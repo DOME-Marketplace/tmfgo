@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"testing"
 
+	svc "github.com/DOME-Marketplace/tmfgo/tmfserver/service"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"github.com/gofiber/fiber/v2"
-	svc "github.com/hesusruiz/tmforum/tmfserver/service"
-	"github.com/hesusruiz/tmforum/types"
 )
 
 // ServiceInterface defines the methods used by the handler

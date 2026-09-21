@@ -9,11 +9,11 @@ import (
 
 	"log/slog"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/jsone"
+	repo "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"github.com/google/uuid"
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/internal/jsone"
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
-	"github.com/hesusruiz/tmforum/types"
 )
 
 // requiresAuthentication checks if the user is authenticated in the request.

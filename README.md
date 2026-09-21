@@ -2,10 +2,10 @@
 
 [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue?logo=sigstore)](https://www.sigstore.dev)
 [![Rekor Transparency Log](https://img.shields.io/badge/Provenance-Rekor%20Log-green?logo=sigstore)](https://rekor.sigstore.dev)
-[![Release Workflow](https://github.com/hesusruiz/tmforum/actions/workflows/release.yml/badge.svg)](https://github.com/hesusruiz/tmforum/actions/workflows/release.yml)
+[![Release Workflow](https://github.com/DOME-Marketplace/tmfgo/actions/workflows/release.yml/badge.svg)](https://github.com/DOME-Marketplace/tmfgo/actions/workflows/release.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Go Reference](https://pkg.go.dev/badge/github.com/hesusruiz/tmforum.svg)](https://pkg.go.dev/github.com/hesusruiz/tmforum)
-[![GHCR](https://img.shields.io/badge/GHCR-tmforum-blue?logo=github)](https://github.com/hesusruiz/tmforum/pkgs/container/tmforum)
+[![Go Reference](https://pkg.go.dev/badge/github.com/DOME-Marketplace/tmfgo.svg)](https://pkg.go.dev/github.com/DOME-Marketplace/tmfgo)
+[![GHCR](https://img.shields.io/badge/GHCR-tmforum-blue?logo=github)](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum)
 
 
 `tmforum` is a [TM Forum (TMF) Open API](https://www.tmforum.org/oda/open-apis/directory) server written in Go, which can operate in two modes.
@@ -18,14 +18,14 @@ In **standalone** mode it is a full self-contained TM Forum server implemented i
 The server passes the [TM Forum Conformance Test Kit](https://github.com/tmforum-randd/CTK) tests for TMF V4 APIs.
 
 There are several ways to run the server. The simplest is to use the already built container image in
-[GHCR](https://github.com/hesusruiz/tmforum/pkgs/container/tmforum), which is [**signed using Sigstore Cosign**](https://www.sigstore.dev/) to provide traceability and verifiability of the software supply chain.
+[GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum), which is [**signed using Sigstore Cosign**](https://www.sigstore.dev/) to provide traceability and verifiability of the software supply chain.
 
 Alternatively, the software can be built and run from the source code, integrating with your CI/CD system.
 
 
 ## Using the pre-built container image
 
-The container image at its different versions is available at [GHCR](https://github.com/hesusruiz/tmforum/pkgs/container/tmforum) and can be run as follows:
+The container image at its different versions is available at [GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum) and can be run as follows:
 
 ```bash
 docker run -p 9991:9991 ghcr.io/hesusruiz/tmforum:<version>
@@ -100,7 +100,7 @@ Use the digest you obtained:
 ```sh
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-  --certificate-identity-regexp "https://github.com/hesusruiz/tmforum/.github/workflows/.*" \
+  --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
   ghcr.io/hesusruiz/tmforum@sha256:<digest>
 ```
 
@@ -145,7 +145,7 @@ echo "Verifying signature..."
 
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-  --certificate-identity-regexp "https://github.com/hesusruiz/tmforum/.github/workflows/.*" \
+  --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
   "${DIGEST}"
 
 echo "✔ Verification successful"
@@ -222,7 +222,7 @@ Users can verify any version using Cosign:
 cosign triangulate ghcr.io/hesusruiz/tmforum:<version>
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-  --certificate-identity-regexp "https://github.com/hesusruiz/tmforum/.github/workflows/.*" \
+  --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
   ghcr.io/hesusruiz/tmforum@sha256:<digest>
 ```
 
@@ -310,7 +310,7 @@ To run the server locally for development:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/hesusruiz/tmforum.git
+    git clone https://github.com/DOME-Marketplace/tmfgo.git
     cd tmforum
     ```
 

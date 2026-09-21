@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	repository "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 	"github.com/gavv/httpexpect/v2"
-	repository "github.com/hesusruiz/tmforum/tmfserver/repository"
 )
 
 func TestPerformance(t *testing.T) {

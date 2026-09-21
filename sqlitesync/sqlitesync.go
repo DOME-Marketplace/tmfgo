@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 )
 
 // Sync executes the sqlite3_rsync binary to synchronize an origin database to a destination database.

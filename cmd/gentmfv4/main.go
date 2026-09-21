@@ -9,8 +9,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/jpath"
 	"github.com/goccy/go-yaml"
-	"github.com/hesusruiz/tmforum/internal/jpath"
 	"golang.org/x/tools/imports"
 )
 

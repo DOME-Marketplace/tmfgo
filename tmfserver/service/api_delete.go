@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/hesusruiz/tmforum/config"
-	repo "github.com/hesusruiz/tmforum/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/config"
+	repo "github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 )
 
 // DeleteTMFObject deletes a TMF object, first in the remote server and then locally.

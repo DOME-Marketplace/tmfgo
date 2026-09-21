@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/hesusruiz/tmforum/internal/errl"
 )
 
 type Mandate struct {

@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/types"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/types"
 	"github.com/mattn/go-sqlite3"
 )
 

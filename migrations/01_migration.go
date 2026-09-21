@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"log/slog"
 
-	"github.com/hesusruiz/tmforum/internal/errl"
-	"github.com/hesusruiz/tmforum/tmfserver/repository"
+	"github.com/DOME-Marketplace/tmfgo/internal/errl"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 )
 
 func init() {
