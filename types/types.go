@@ -25,9 +25,32 @@ type Resource struct {
 	BasePath string
 	Public   bool
 	Actions  map[string]*Action
+	fields   []string
+}
+
+func (res *Resource) HasField(field string) bool {
+	return slices.Contains(res.fields, field)
 }
 
 type Resources map[string]*Resource
+
+func TypeFields(resource string) []string {
+	r, ok := tmf_resource_requirements[resource]
+	if !ok {
+		return nil
+	}
+
+	return r.fields
+}
+
+func TypeHasField(resource string, field string) bool {
+	r, ok := tmf_resource_requirements[resource]
+	if !ok {
+		return false
+	}
+
+	return slices.Contains(r.fields, field)
+}
 
 var tmf_resource_requirements Resources
 
@@ -45,6 +68,9 @@ func ParseActionDefinitions() {
 	for _, resource := range tmf_resource_requirements {
 		for _, action := range resource.Actions {
 			action.resource_lower = strings.ToLower(action.Resource)
+			if action.Action == "CREATE" {
+				resource.fields = action.Fields
+			}
 		}
 	}
 }
