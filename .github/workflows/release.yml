@@ -23,12 +23,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          IMAGE="ghcr.io/dome-marketplace/tmfgo:${{ github.ref_name }}"
           docker build -t "$IMAGE" .
 
       - name: Push Docker image
         run: |
-          IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          IMAGE="ghcr.io/dome-marketplace/tmfgo:${{ github.ref_name }}"
           docker push "$IMAGE"
 
       - name: Install Cosign
@@ -36,7 +36,7 @@ jobs:
 
       - name: Sign Docker image (by digest)
         run: |
-          IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          IMAGE="ghcr.io/dome-marketplace/tmfgo:${{ github.ref_name }}"
           DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")
           echo "Signing digest: $DIGEST"
           cosign sign --yes "$DIGEST"
