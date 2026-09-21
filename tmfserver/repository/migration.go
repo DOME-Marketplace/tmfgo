@@ -97,7 +97,7 @@ func RunMigrationsUp(db *sql.DB) error {
 	// Loop the keys for applying the migration or not
 	for _, currentMigrationVersion := range keys {
 		if currentMigrationVersion <= lastAppliedVersion {
-			slog.Debug("Skipping migration", slog.String("version", currentMigrationVersion))
+			slog.Info("Skipping migration", slog.String("version", currentMigrationVersion))
 			continue
 		}
 		migration := migrations[currentMigrationVersion]
@@ -183,4 +183,39 @@ func applyMigration(db *sql.DB, migration oneMigration) error {
 
 	return nil
 
+}
+
+func migrationsTableExists(db *sql.DB) (bool, error) {
+	var exists bool
+
+	err := db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1
+			FROM sqlite_schema
+			WHERE type = 'table'
+			AND name = 'migrations'
+		)
+	`).Scan(&exists)
+
+	return exists, err
+}
+
+// InsertFirstMigration inserts the first migration into the database
+// This migration is created when the database is created for the first time.
+// It represents the initial state of the database, before any actual migrations have been applied.
+func InsertFirstMigration(db *sql.DB) error {
+
+	// Create the migrations table if it doesn't exist
+	if _, err := db.Exec(createMigrationsTableSQL); err != nil {
+		return errl.Errorf("failed to create migrations table: %w", err)
+	}
+
+	// Insert a migration with no changes, to mark that the tables have been created
+	now := time.Now()
+	version := now.Format("20060102T150405")
+	if _, err := db.Exec("INSERT INTO migrations (version, created_at) VALUES (?, ?)", version, now.Unix()); err != nil {
+		return errl.Error(err)
+	}
+
+	return nil
 }

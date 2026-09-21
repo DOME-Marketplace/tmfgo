@@ -73,9 +73,6 @@ type TMFRecord struct {
 	Validations    ValidationResult `db:"-"`
 }
 
-// DeleteTMFTableSQL is the SQL statement to delete the table 'tmf_object'
-const DeleteTMFTableSQL = `DROP TABLE IF EXISTS tmf_object;`
-
 // VacuumSQL is the SQL statement to vacuum the database
 const VacuumSQL = `VACUUM;`
 
@@ -130,7 +127,7 @@ func NewDBService(dbName string, serverOperatorID string) (*DBService, error) {
 
 	// Create tables if they do not exist, and run migrations
 	slog.Info("db: About to create tables if they do not exist")
-	err = CreateTables(db)
+	err = CreateAndMigrateTables(db)
 	if err != nil {
 		return nil, errl.Error(err)
 	}
@@ -144,9 +141,25 @@ func NewDBService(dbName string, serverOperatorID string) (*DBService, error) {
 	return repo, nil
 }
 
-// CreateTables creates the tables in the database if they do not exist.
+// CreateAndMigrateTables creates the tables in the database if they do not exist.
 // It also handles automatic schema/data migration when possible.
-func CreateTables(db *sql.DB) error {
+func CreateAndMigrateTables(db *sql.DB) error {
+
+	// Check if the migrations table exists
+	migrationsTableExists, err := migrationsTableExists(db)
+	if err != nil {
+		return errl.Error(err)
+	}
+
+	// If it does not exist, we can create the latest schemas of the normal tables, without applying any migration
+	if !migrationsTableExists {
+		return createtables(db)
+	}
+
+	return RunMigrationsUp(db)
+}
+
+func createtables(db *sql.DB) error {
 
 	if _, err := db.Exec(CreateTMFTableSQL); err != nil {
 		return errl.Errorf("failed to create tmf_object table: %w", err)
@@ -156,11 +169,12 @@ func CreateTables(db *sql.DB) error {
 		return errl.Errorf("failed to create tmf_operation_log table: %w", err)
 	}
 
-	if err := RunMigrationsUp(db); err != nil {
+	if err := InsertFirstMigration(db); err != nil {
 		return errl.Error(err)
 	}
 
 	return nil
+
 }
 
 // ErrObjectExists is returned when trying to create an object that already exists.
@@ -594,6 +608,7 @@ func BuildSelectFromParms(resourceName string, queryValues url.Values) (query st
 	}
 
 	// Build the WHERE by processing the query values specified by the user
+	// Process first the fields which may restrict the result, such as lifecycleStatus, seller_operator, buyer_operator, etc.
 	for key, values := range queryValues {
 
 		// Create additional parts of the SELECT, with some special processing
@@ -707,8 +722,15 @@ func BuildSelectFromParms(resourceName string, queryValues url.Values) (query st
 			if len(pathParts) == 1 {
 
 				if len(vals) == 1 {
-					queryBuilder.Render(" AND content->>'$.", key, "' = ?")
+					// Support LIKE queries when there is a '%' at the beginning or at the end of the value.
+					value := vals[0]
+					if strings.HasPrefix(value, "%") || strings.HasSuffix(value, "%") {
+						queryBuilder.Render(" AND content->>'$.", key, "' LIKE ?")
+					} else {
+						queryBuilder.Render(" AND content->>'$.", key, "' = ?")
+					}
 				} else {
+					// Multi-valued IN list
 					queryBuilder.Render(" AND content->>'$.", key, "' IN ").RenderSQLList(vals)
 				}
 				for _, v := range vals {

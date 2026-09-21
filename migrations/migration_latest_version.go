@@ -1,9 +1,13 @@
-package repository
+package migrations
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/hesusruiz/tmforum/tmfserver/repository"
+)
 
 func init() {
-	RegisterMigration("20260419T000000", upKeepLatestVersion, nil)
+	repository.RegisterMigration("20260419T000000", upKeepLatestVersion, nil)
 }
 
 func upKeepLatestVersion(db *sql.DB) error {
