@@ -65,7 +65,7 @@ func (svc *Service) RetrieveAll(ctx context.Context, deleteInvalid bool) error {
 		userOffset := 0
 
 		// Retrieve objects
-		receivedObjects, _, invalidObjects, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset, deleteInvalid)
+		receivedObjects, _, invalidObjects, err := svc.listRemoteObjectsRobust(ctx, req, userLimit, userOffset)
 		if err != nil {
 			slog.Error("Failed to retrieve objects", "error", err, "resource", resource)
 			continue
@@ -138,7 +138,7 @@ func (svc *Service) RetrieveAll(ctx context.Context, deleteInvalid bool) error {
 	return nil
 }
 
-func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, userLimit, userOffset int, deleteInvalid bool) (
+func (svc *Service) listRemoteObjectsRobust(ctx context.Context, req *Request, userLimit, userOffset int) (
 	responseObjects []repo.TMFObjectMap, responseHeaders map[string]string, diagnosticObjects []repo.ValidationResult, err error) {
 
 	// Delete the attribute selection for the query to the upstream server. We will receive full objects and
