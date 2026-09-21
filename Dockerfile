@@ -28,13 +28,13 @@ COPY . .
 
 # Build the binary with CGO enabled
 # -ldflags="-w -s" strips debug information and symbols, reducing the binary size
-RUN go build -ldflags="-w -s" -o /isbetmf .
+RUN go build -ldflags="-w -s" -o /tmfgo .
 
 # Final stage
 FROM alpine/curl:latest
 
 WORKDIR /
-COPY --from=tmfbuilder /isbetmf /isbetmf
+COPY --from=tmfbuilder /tmfgo /tmfgo
 COPY www /www
 COPY ./auth_policies.star /auth_policies.star
 COPY --from=sqlite3_rsync --chmod=755 /usr/local/bin/sqlite3_rsync /usr/local/bin/sqlite3_rsync
@@ -51,4 +51,4 @@ HEALTHCHECK \
 EXPOSE 9991
 
 # Run the binary
-ENTRYPOINT ["/isbetmf"]
+ENTRYPOINT ["/tmfgo"]

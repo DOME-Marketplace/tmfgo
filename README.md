@@ -28,13 +28,13 @@ Alternatively, the software can be built and run from the source code, integrati
 The container image at its different versions is available at [GHCR](https://github.com/DOME-Marketplace/tmfgo/pkgs/container/tmforum) and can be run as follows:
 
 ```bash
-docker run -p 9991:9991 ghcr.io/hesusruiz/tmforum:<version>
+docker run -p 9991:9991 ghcr.io/DOME-Marketplace/tmfgo:<version>
 ```
 
 For example:
 
 ```bash
-docker run -p 9991:9991 ghcr.io/hesusruiz/tmforum:v1.0.2
+docker run -p 9991:9991 ghcr.io/DOME-Marketplace/tmfgo:v1.0.2
 ```
 
 The container can be configured as described in [Configuring and running](#configuring-and-running).
@@ -75,20 +75,20 @@ Cosign verifies **digests**, not tags.
 To get the digest for any version:
 
 ```sh
-cosign triangulate ghcr.io/hesusruiz/tmforum:<version>
+cosign triangulate ghcr.io/DOME-Marketplace/tmfgo:<version>
 ```
 Where `<version>` is the tag (e.g., `v1.0.2`) of the image you want to verify.
 
 Example:
 
 ```sh
-cosign triangulate ghcr.io/hesusruiz/tmforum:v1.0.2
+cosign triangulate ghcr.io/DOME-Marketplace/tmfgo:v1.0.2
 ```
 
 This prints something like:
 
 ```
-ghcr.io/hesusruiz/tmforum@sha256:<digest>
+ghcr.io/DOME-Marketplace/tmfgo@sha256:<digest>
 ```
 
 Copy the digest for the next step.
@@ -101,7 +101,7 @@ Use the digest you obtained:
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
-  ghcr.io/hesusruiz/tmforum@sha256:<digest>
+  ghcr.io/DOME-Marketplace/tmfgo@sha256:<digest>
 ```
 
 If verification succeeds, Cosign will show:
@@ -128,7 +128,7 @@ if [ $# -ne 1 ]; then
 fi
 
 VERSION="$1"
-IMAGE="ghcr.io/hesusruiz/tmforum:${VERSION}"
+IMAGE="ghcr.io/DOME-Marketplace/tmfgo:${VERSION}"
 
 # Check cosign availability
 if ! command -v cosign >/dev/null 2>&1; then
@@ -219,11 +219,11 @@ This provides verifiable trust without relying on private infrastructure.
 Users can verify any version using Cosign:
 
 ```sh
-cosign triangulate ghcr.io/hesusruiz/tmforum:<version>
+cosign triangulate ghcr.io/DOME-Marketplace/tmfgo:<version>
 cosign verify \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   --certificate-identity-regexp "https://github.com/DOME-Marketplace/tmfgo/.github/workflows/.*" \
-  ghcr.io/hesusruiz/tmforum@sha256:<digest>
+  ghcr.io/DOME-Marketplace/tmfgo@sha256:<digest>
 ```
 
 Or simply run the included `verify.sh` script.
