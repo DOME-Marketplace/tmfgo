@@ -1,4 +1,4 @@
-package fiber
+package admin
 
 import (
 	"context"
@@ -35,9 +35,9 @@ type AdminHandler struct {
 	htmlRenderer *html.Renderer
 }
 
-func NewAdminHandler(app *fiber.App, s *service.Service) *AdminHandler {
+func NewHandler(app *fiber.App, s *service.Service) *AdminHandler {
 
-	htmlRenderer, err := html.NewRenderer(true, &templatesFS, "templates", "tmfserver/handler/fiber/templates", ".html")
+	htmlRenderer, err := html.NewRenderer(true, &templatesFS, "templates", "tmfserver/admin/templates", ".html")
 	if err != nil {
 		panic(fmt.Errorf("failed to create admin templates renderer: %w", err))
 	}
@@ -51,6 +51,11 @@ func NewAdminHandler(app *fiber.App, s *service.Service) *AdminHandler {
 
 	return h
 
+}
+
+// NewAdminHandler is an alias for NewHandler for backwards compatibility
+func NewAdminHandler(app *fiber.App, s *service.Service) *AdminHandler {
+	return NewHandler(app, s)
 }
 
 func (h *AdminHandler) registerRoutes(app *fiber.App) {

@@ -1,4 +1,4 @@
-package fiber
+package admin
 
 import (
 	"net/http"

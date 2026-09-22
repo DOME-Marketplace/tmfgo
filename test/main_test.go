@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package test
 
 import (
 	"bytes"
@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/DOME-Marketplace/tmfgo/config"
+	"github.com/DOME-Marketplace/tmfgo/tmfserver"
 	"github.com/DOME-Marketplace/tmfgo/tmfserver/repository"
 	"github.com/DOME-Marketplace/tmfgo/types"
 )
@@ -103,6 +104,10 @@ var LocalConfig = &config.Config{
 
 // Create and start the web server only once even if the tests can run in parallel
 func init() {
+	// Change working directory to repository root so config files, static assets, and policies are found
+	if err := os.Chdir(".."); err != nil {
+		panic(err)
+	}
 
 	// Set the nocolor option for logs
 	err := os.Setenv("ISBETMF_LOGS_NOCOLOR", "true")
@@ -119,7 +124,7 @@ func init() {
 	// }
 
 	go func() {
-		err := runNormalProcess(LocalConfig, false)
+		err := tmfserver.Run(LocalConfig, false)
 		if err != nil {
 			panic(err)
 		}

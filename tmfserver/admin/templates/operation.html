@@ -61,6 +61,7 @@ type TMFOpLogRecord struct {
                             <p>Server: {{ .OpLog.ServerID }}</p>
                             <p>Created At: {{ .OpLog.CreatedAt }}</p>
 
+                            {{ if .OpLog.AccessToken }}
                             <div class="accordion" id="accordionExample">
                                 <div class="accordion-item">
 
@@ -79,7 +80,7 @@ type TMFOpLogRecord struct {
                                     </div>
                                 </div>
                             </div>
-
+                            {{ end }}
 
                         </div>
                     </div>
@@ -99,102 +100,147 @@ type TMFOpLogRecord struct {
                         </div>
                     </div>
 
+
                     <div class="card mb-4">
-                        <div class="card-header">
-                            <h3 class="card-title">Content</h3>
-                        </div>
-                        <div class="card-body">
-                            <pre><code class="language-json">{{ .OldContent }}</code></pre>
-                            <pre><code class="language-json">{{ .NewContent }}</code></pre>
+                        <div class="accordion" id="accordionPreviousContent">
+                            <div class="accordion-item">
+
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapsePreviousContent" aria-expanded="false"
+                                        aria-controls="collapsePreviousContent">
+                                        Previous Content
+                                    </button>
+                                </h2>
+                                <div id="collapsePreviousContent" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionPreviousContent">
+                                    <div class="accordion-body">
+                                        <pre><code class="language-json">{{ .OldContent }}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Diff</h3>
+                    <div class="card mb-4">
+                        <div class="accordion" id="accordionNewContent">
+                            <div class="accordion-item">
+
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseNewContent" aria-expanded="false"
+                                        aria-controls="collapseNewContent">
+                                        New Content
+                                    </button>
+                                </h2>
+                                <div id="collapseNewContent" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionNewContent">
+                                    <div class="accordion-body">
+                                        <pre><code class="language-json">{{ .NewContent }}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
+                    </div>
 
-                            <style>
-                                .diff-line {
-                                    font-family: monospace;
-                                    white-space: pre-wrap;
-                                    /* allow wrapping but preserve indentation */
-                                    word-break: break-word;
-                                    /* break long tokens like URLs or long strings */
-                                    padding: 2px 10px;
-                                    border-left: 4px solid transparent;
-                                }
+                    <div class="card mb-4">
+                        <div class="accordion" id="accordionDiff">
+                            <div class="accordion-item">
 
-                                .diff-unchanged {
-                                    color: #666;
-                                    background: #fafafa;
-                                }
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseDiff" aria-expanded="false"
+                                        aria-controls="collapseDiff">
+                                        Diff Content
+                                    </button>
+                                </h2>
+                                <div id="collapseDiff" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionDiff">
+                                    <div class="accordion-body">
 
-                                .diff-removed {
-                                    background: #ffecec;
-                                    color: #b30000;
-                                    border-left-color: #b30000;
-                                }
+                                        <style>
+                                            .diff-line {
+                                                font-family: monospace;
+                                                white-space: pre-wrap;
+                                                /* allow wrapping but preserve indentation */
+                                                word-break: break-word;
+                                                /* break long tokens like URLs or long strings */
+                                                padding: 2px 10px;
+                                                border-left: 4px solid transparent;
+                                            }
 
-                                .diff-added {
-                                    background: #eaffea;
-                                    color: #006600;
-                                    border-left-color: #006600;
-                                }
-                            </style>
+                                            .diff-unchanged {
+                                                color: #666;
+                                                background: #fafafa;
+                                            }
+
+                                            .diff-removed {
+                                                background: #ffecec;
+                                                color: #b30000;
+                                                border-left-color: #b30000;
+                                            }
+
+                                            .diff-added {
+                                                background: #eaffea;
+                                                color: #006600;
+                                                border-left-color: #006600;
+                                            }
+                                        </style>
 
 
-                            <div id="diff"></div>
+                                        <div id="diff"></div>
 
-                            <script>
-                                function textToLines(text) {
-                                    return text.split("\n");
-                                }
+                                        <script>
+                                            function textToLines(text) {
+                                                return text.split("\n");
+                                            }
 
-                                function diffLines(aLines, bLines) {
-                                    const result = [];
-                                    const max = Math.max(aLines.length, bLines.length);
+                                            function diffLines(aLines, bLines) {
+                                                const result = [];
+                                                const max = Math.max(aLines.length, bLines.length);
 
-                                    for (let i = 0; i < max; i++) {
-                                        const a = aLines[i] ?? "";
-                                        const b = bLines[i] ?? "";
+                                                for (let i = 0; i < max; i++) {
+                                                    const a = aLines[i] ?? "";
+                                                    const b = bLines[i] ?? "";
 
-                                        if (a === b) {
-                                            result.push({ type: "unchanged", text: "  " + a });
-                                        } else {
-                                            // removed
-                                            result.push({
-                                                type: "removed",
-                                                text: "- " + (a !== "" ? a : "")
-                                            });
+                                                    if (a === b) {
+                                                        result.push({ type: "unchanged", text: "  " + a });
+                                                    } else {
+                                                        // removed
+                                                        result.push({
+                                                            type: "removed",
+                                                            text: "- " + (a !== "" ? a : "")
+                                                        });
 
-                                            // added
-                                            result.push({
-                                                type: "added",
-                                                text: "+ " + (b !== "" ? b : "")
-                                            });
-                                        }
-                                    }
+                                                        // added
+                                                        result.push({
+                                                            type: "added",
+                                                            text: "+ " + (b !== "" ? b : "")
+                                                        });
+                                                    }
+                                                }
 
-                                    return result;
-                                }
+                                                return result;
+                                            }
 
-                                function renderDiff(diff) {
-                                    const container = document.getElementById("diff");
-                                    container.innerHTML = diff.map(line => {
-                                        return `<div class="diff-line diff-${line.type}">${line.text}</div>`;
-                                    }).join("");
-                                }
+                                            function renderDiff(diff) {
+                                                const container = document.getElementById("diff");
+                                                container.innerHTML = diff.map(line => {
+                                                    return `<div class="diff-line diff-${line.type}">${line.text}</div>`;
+                                                }).join("");
+                                            }
 
-                                // Your Go-provided JSON strings (already formatted)
-                                const obj1 = {{ .OldContent }};
-                                const obj2 = {{ .NewContent }};
+                                            // Your Go-provided JSON strings (already formatted)
+                                            const obj1 = {{ .OldContent }};
+                                            const obj2 = {{ .NewContent }};
 
-                                const diff = diffLines(textToLines(obj1), textToLines(obj2));
-                                renderDiff(diff);
-                            </script>
+                                            const diff = diffLines(textToLines(obj1), textToLines(obj2));
+                                            renderDiff(diff);
+                                        </script>
 
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

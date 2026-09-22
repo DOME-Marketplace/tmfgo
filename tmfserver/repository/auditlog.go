@@ -223,7 +223,7 @@ func (repo *DBService) GetOperation(seq int64) (*TMFOpLogRecord, error) {
 		l.NewContent = make([]byte, len(newContentStr.String))
 		copy(l.NewContent, newContentStr.String)
 	}
-	fmt.Println("OldContent: ", string(l.OldContent))
+	fmt.Println("Token: ", string(l.AccessToken))
 
 	return &l, nil
 }
@@ -264,7 +264,7 @@ func (repo *DBService) GetSummaryOperationLogs(page, size int) (totalRecords int
 		SELECT seq, action, object_id, object_type,
 		       caller_id, server_id, created_at
 		FROM tmf_operation_log
-		ORDER BY seq ASC
+		ORDER BY seq DESC
 		LIMIT ? OFFSET ?`
 
 	rows, err := repo.db.Query(query, size, offset)

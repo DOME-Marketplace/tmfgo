@@ -1,6 +1,9 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -233,7 +236,9 @@ func LoadConfig(
 	if adminToken == "" {
 		// For local testing, use the testing token. For other environments, it is compulsory
 		if environment == LOCAL {
-			adminToken = "eyJhdWQiOiJodHRwczovL2NhdGFsb2cuaX"
+			// Generate a new random token for local testing
+			adminToken = generateRandomToken()
+			fmt.Printf("Generated testing admin token: %s\n", adminToken)
 		} else {
 			return nil, errl.Errorf("TMF_ADMIN_TOKEN not set for environment %s", environment)
 		}
@@ -243,6 +248,15 @@ func LoadConfig(
 
 	return conf, nil
 
+}
+
+func generateRandomToken() string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(b)
 }
 
 func (c *Config) IsDOME() bool {

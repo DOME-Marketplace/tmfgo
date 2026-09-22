@@ -16,6 +16,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.7
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/pb33f/libopenapi v0.38.7
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	gitlab.com/greyxor/slogor v1.7.0
 	go.starlark.net v0.0.0-20260908191801-89a6a09411d5
@@ -37,6 +38,7 @@ require (
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
@@ -49,6 +51,7 @@ require (
 	github.com/sanity-io/litter v1.5.8 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect

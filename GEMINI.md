@@ -1,10 +1,10 @@
-# Gemini Code Assistant Guidance for `isbetmf`
+# Gemini Code Assistant Guidance for `tmfgo`
 
-This document provides guidance for Gemini Code Assistant to understand the `isbetmf` project, its architecture, and coding conventions.
+This document provides guidance for Gemini Code Assistant to understand the `tmfgo` project, its architecture, and coding conventions.
 
 ## Project Overview
 
-`isbetmf` is a [TM Forum (TMF) Open API](https://www.tmforum.org/oda/open-apis/directory) server written in Go. It is designed to be highly flexible and can operate in two distinct modes:
+`tmfgo` is a [TM Forum (TMF) Open API](https://www.tmforum.org/oda/open-apis/directory) server written in Go. It is designed to be highly flexible and can operate in two distinct modes:
 
 1.  **Standalone Server:** Implements the TMF Open API specifications and manages entities in its own database (SQLite).
 2.  **Proxy Server:** Acts as a Policy Enforcement Point (PEP) and Policy Decision Point (PDP) in front of a remote TM Forum API server. In this mode, it forwards requests to the upstream server while enforcing authentication, authorization, and other business rules.
@@ -18,8 +18,7 @@ The project follows a clean, layered architecture designed for modularity and te
 ### 1. Entrypoint (`main.go`)
 
 *   The `main` function in the root `main.go` is the application entrypoint.
-*   It handles command-line flag parsing, configuration loading, and initializes all major components.
-*   It uses the `tableflip` library to manage graceful, zero-downtime server restarts and upgrades.
+*   It is very thin and delegates to the `cmd` package which handles the logic for starting and stopping the server.
 
 ### 2. Handler Layer (`tmfserver/handler/fiber`)
 
@@ -65,7 +64,6 @@ The project follows a clean, layered architecture designed for modularity and te
 
 *   This layer abstracts all database interactions.
 *   It is responsible for CRUD (Create, Read, Update, Delete) operations on TMF objects in the SQLite database.
-*   It uses the `sqlx` library for database access.
 
 ### 5. Policy Engine (`pdp`)
 
@@ -79,16 +77,36 @@ The project follows a clean, layered architecture designed for modularity and te
 *   **Error Handling:** Use the custom `errl` package for annotating and wrapping errors to provide context.
 *   **Configuration:** Configuration is managed in the `config` package. It uses a profile-based approach (`-run` flag) rather than numerous individual environment variables.
 *   **Generics:** Embrace the "generic" approach. When adding new functionality, consider if it can be implemented in the generic handlers and service methods before creating specific ones.
-*   **Dependencies:**
-    *   **Web Framework:** `github.com/gofiber/fiber/v2`
-    *   **Database:** `github.com/jmoiron/sqlx` with `github.com/mattn/go-sqlite3` driver.
-    *   **Graceful Restarts:** `github.com/cloudflare/tableflip`
-    *   **Policy Rules:** `go.starlark.net/starlark`
 
 ## How to Run
 
-The application is started via `go run main.go`. The `-run` flag is important for selecting the correct configuration profile. For example:
+The following is the result of executing `go run . --help`:
 
 ```bash
-go run main.go -run mycredential
+tmfgo is a TM Forum (TMF) Open API server and proxy written in Go.
+It can operate as a standalone TMF server or as an authenticating and
+authorizing proxy in front of an upstream TMF instance.
+
+Usage:
+  tmfgo [flags]
+  tmfgo [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  gentoken    Generate a JWT access token for testing or administration
+  help        Help about any command
+  purge       Delete invalid objects from the database
+  serve       Start the TM Forum API server
+  version     Print the version of tmfgo
+
+Flags:
+  -d, --debug        Enable debug logging
+  -h, --help         help for tmfgo
+      --init         Run as container init process
+      --purge        Delete invalid objects on startup
+      --rh int       Restart program every day at this hour (default 3)
+      --rm int       Restart program every day at this minute
+      --run string   Environment where run: isbedev, isbepre, isbepro, domedev, domepre, domepro, local
+
+Use "tmfgo [command] --help" for more information about a command.
 ```

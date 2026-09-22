@@ -18,6 +18,9 @@ import (
 const defaultDeleteInvalid = true
 
 func (svc *Service) ScheduleRetrieveAll() {
+	if !svc.proxyEnabled || svc.tmfClient == nil {
+		return
+	}
 	go func() {
 		for {
 			// Retrieve all public resources at the beginning and every 15 minutes
@@ -32,6 +35,9 @@ func (svc *Service) ScheduleRetrieveAll() {
 
 // RetrieveAll retrieves all TMF objects of a given type.
 func (svc *Service) RetrieveAll(ctx context.Context, deleteInvalid bool) error {
+	if !svc.proxyEnabled || svc.tmfClient == nil {
+		return nil
+	}
 
 	totalNumber := 0
 	totalInvalidObjects := 0
