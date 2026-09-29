@@ -89,8 +89,8 @@ func (svc *Service) RetrieveAll(ctx context.Context, deleteInvalid bool) error {
 			// Iterate through validation results and print the errors
 			for _, vr := range invalidObjects {
 
-				// Delete the offending object if deleteInvalid is true
-				if deleteInvalid && resource != types.Category {
+				// Delete the offending object if deleteInvalid is true, but don't delete categories or catalogs
+				if deleteInvalid && resource != types.Category && resource != types.Catalog {
 					pathPrefix, err := config.ExternalUpstreamTMFPath(req.ResourceName)
 					if err != nil {
 						slog.Error("failed to get path prefix", "error", err, "resourceName", req.ResourceName)
